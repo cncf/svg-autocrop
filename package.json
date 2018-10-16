@@ -1,0 +1,25 @@
+{
+  "name": "svg-autocrop",
+  "version": "1.0.0",
+  "description": "Auto crop svg files",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cncf/svg-autocrop.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cncf/svg-autocrop/issues"
+  },
+  "homepage": "https://github.com/cncf/svg-autocrop#readme",
+  "dependencies": {
+    "convert-svg-to-png": "^0.4.0",
+    "jimp": "^0.5.4",
+    "lodash": "^4.17.11",
+    "xml2js": "^0.4.19"
+  }
+}
