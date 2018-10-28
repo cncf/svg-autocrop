@@ -16,25 +16,6 @@ async function svg2js(content) {
   })
 }
 
-//
-async function ensureViewBoxExists(content) {
-  try {
-    const js = await svg2js(content);
-    if (!js.svg.$.viewBox) {
-      const width = (js.svg.$.width || '').replace('px', '');
-      const height = (js.svg.$.height || '').replace('px', '');
-      js.svg.$.viewBox = `0 0 ${width || 2000} ${height || 2000}`;
-      const builder = new Builder();
-      return builder.buildObject(js);
-    } else {
-      return content;
-    }
-  } catch(ex) {
-      // we can not parse the content properly
-      return content.replace('<svg ', '<svg viewBox="0 0 1000 1000" ');
-  }
-}
-
 async function getViewbox(content) {
   try {
     const js = await svg2js(content);
@@ -59,12 +40,13 @@ async function getViewbox(content) {
 }
 
 async function updateViewbox(content, {x, y, width, height}) {
-  const viewBox = content.match(/viewBox="(.*?)"/)[1];
-  const newValue = `${x} ${y} ${width} ${height}`;
+  const viewBox = (content.match(/viewBox="(.*?)"/) || {})[1];
+  const newValue = `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
+    console.info(newValue);
   if (viewBox) {
     return content.replace(/viewBox="(.*?)"/, `viewBox="${newValue}"`);
   } else {
-    return content;
+    return content.replace('<svg ', `<svg viewBox="${newValue}" `);
   }
 }
 
@@ -90,10 +72,8 @@ async function removeWidthAndHeight(svg) {
 
 module.exports = async function autoCropSvg(svg) {
   svg = svg.toString();
-  svg = await ensureViewBoxExists(svg);
   // get a maximum possible viewbox which covers the whole region;
   const {x, y, width, height } = await getViewbox(svg);
-  console.info(x, y, width, height);
   const maxSizeX = Math.max(Math.abs(x), Math.abs(x + width));
   const maxSizeY = Math.max(Math.abs(y), Math.abs(y + height));
 
@@ -124,12 +104,19 @@ module.exports = async function autoCropSvg(svg) {
 
   const png = await tryToConvert();
   if (!png) {
-    require('fs').writeFileSync('/tmp/1.svg', svg);
     throw new Error('Not a valid svg');
   }
   const image = await Jimp.read(png);
+  async function save(fileName) {
+    const data = await new Promise(function(resolve) {
+        image.getBuffer('image/png', function(err, data) {
+            resolve(data);
+        }); 
+    });
+    require('fs').writeFileSync(fileName, data);
+  }
   if (process.env.DEBUG_SVG) {
-    await image.write('/tmp/result1.png');
+      await save('/tmp/r1.png');
   }
 
   // If anything is completely white - make it black
@@ -151,28 +138,31 @@ module.exports = async function autoCropSvg(svg) {
   });
 
   if (process.env.DEBUG_SVG) {
-    await image.write('/tmp/result2.png');
+    await save('/tmp/r2.png');
   }
 
   async function getCropRegion() {
     const oldCrop = image.crop;
     let newViewbox = { x: 0, y: 0, width: 2 * maxSizeX, height: 2 * maxSizeY };
     image.crop = function(a, b, c, d) {
+      console.info('crop: ', a, b, c, d);
       newViewbox = {x: a, y: b, width: c, height: d};
       return;
     }
-    await image.autocrop(false);
+    console.info('Autocrop!');
+    await image.autocrop();
     image.crop = oldCrop;
     return newViewbox;
   }
 
-  if (process.env.DEBUG_SVG) {
-    image.autocrop(false);
-    await image.write('/tmp/result3.png');
-
-  }
 
   const newViewbox = await getCropRegion();
+  if (process.env.DEBUG_SVG) {
+    image.autocrop(false);
+    await save('/tmp/r3.png');
+
+  }
+  console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
   newViewbox.x = newViewbox.x - newViewbox.width * extraRatio;
@@ -183,6 +173,7 @@ module.exports = async function autoCropSvg(svg) {
   // translate to original coordinats
   newViewbox.x = newViewbox.x - maxSizeX;
   newViewbox.y = newViewbox.y - maxSizeY;
+  console.info(newViewbox);
   // apply a new viewbox to the svg
   const newSvg = await updateViewbox(svg, newViewbox);
   return newSvg;
