@@ -42,7 +42,7 @@ async function getViewbox(content) {
 async function updateViewbox(content, {x, y, width, height}) {
   const viewBox = (content.match(/viewBox="(.*?)"/) || {})[1];
   const newValue = `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
-    console.info(newValue);
+    // console.info(newValue);
   if (viewBox) {
     return content.replace(/viewBox="(.*?)"/, `viewBox="${newValue}"`);
   } else {
@@ -51,23 +51,36 @@ async function updateViewbox(content, {x, y, width, height}) {
 }
 
 async function removeWidthAndHeight(svg) {
-  const lines = svg.split('\n');
-  const svgLine = _.find(lines, (x) => x.indexOf('<svg ') !== -1);
-  if (!svgLine) {
-    return svg; //strange
+  const svgElementIndex = svg.indexOf('<svg');
+  if (svgElementIndex === -1) {
+      return svg;
   }
+  const partWithSvg = svg.substring(svgElementIndex);
   var js;
   try  {
     js = await svg2js(svg);
   } catch(ex) {
     return svg; //
   }
-  if (!js.svg.$.width || !js.svg.$.height) {
-    return svg;
+
+  const existingWidth = js.svg.$.width;
+  const existingHeight = js.svg.$.height;
+  const existingPreserveAspectRatio = js.svg.$.existingAspectRatio;
+
+  let result = partWithSvg;
+  if (existingWidth) {
+      result = result.replace(`width="${existingWidth}"`, '');
+      // console.info('replcaing width');
+  };
+  if (existingHeight) {
+      result = result.replace(`height="${existingHeight}"`, '');
+      // console.info('replcaing height', `height="${existingHeight}"`);
   }
-  const cleanLine = svgLine.replace(/width=".*?"/, '').replace(/height=".*?"/, '').replace(/preserveAspectRatio=".*?"/, '');
-  const newLines = lines.map( (x) => x === svgLine ? cleanLine : x);
-  return newLines.join('\n');
+  if (existingPreserveAspectRatio) {
+      // console.info('replcaing ar');
+      result = result.replace(`preserveAspectRatio="${existingPreserveAspectRatio}"`, '');
+  }
+  return svg.substring(0, svgElementIndex) + result;
 }
 
 module.exports = async function autoCropSvg(svg) {
@@ -144,13 +157,13 @@ module.exports = async function autoCropSvg(svg) {
   async function getCropRegion() {
     const oldCrop = image.crop;
     let newViewbox = { x: 0, y: 0, width: 2 * maxSizeX, height: 2 * maxSizeY };
-    image.crop = function(a, b, c, d) {
-      console.info('crop: ', a, b, c, d);
-      newViewbox = {x: a, y: b, width: c, height: d};
-      return;
+    // console.info('calc crop region');
+    image.crop = function(x, y, w, h) {
+      newViewbox = {x: x, y: y, width: w, height: h};
+      // console.info('crop: ', newViewbox);
     }
-    console.info('Autocrop!');
-    await image.autocrop();
+    // console.info('Autocrop!');
+    await image.autocrop(false);
     image.crop = oldCrop;
     return newViewbox;
   }
@@ -159,10 +172,11 @@ module.exports = async function autoCropSvg(svg) {
   const newViewbox = await getCropRegion();
   if (process.env.DEBUG_SVG) {
     image.autocrop(false);
+    // console.info(image);
     await save('/tmp/r3.png');
 
   }
-  console.info(newViewbox);
+  // console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
   newViewbox.x = newViewbox.x - newViewbox.width * extraRatio;
@@ -173,7 +187,7 @@ module.exports = async function autoCropSvg(svg) {
   // translate to original coordinats
   newViewbox.x = newViewbox.x - maxSizeX;
   newViewbox.y = newViewbox.y - maxSizeY;
-  console.info(newViewbox);
+  // console.info(newViewbox);
   // apply a new viewbox to the svg
   const newSvg = await updateViewbox(svg, newViewbox);
   return newSvg;
