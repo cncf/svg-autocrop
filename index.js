@@ -272,6 +272,17 @@ module.exports = async function autoCropSvg(svg) {
   const newSvg = await updateViewbox(svg, newViewbox);
 
   // validate svg for common errors
+  if (newSvg.indexOf('base64,') !== -1) {
+      throw new Error('SVG file embeds a png. Please use a pure svg file');
+  }
+  if (newSvg.indexOf('<text') !== -1) {
+      throw new Error('SVG file has a <text> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
+  }
+  if (newSvg.indexOf('<tspan') !== -1) {
+      throw new Error('SVG file has a <tspan> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
+  }
+
+
   return newSvg;
 }
 
