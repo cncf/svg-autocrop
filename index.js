@@ -3,6 +3,85 @@ const _  = require('lodash');
 const Jimp = require('jimp');
 const { convert } = require('convert-svg-to-png');
 
+async function svgo(content) {
+    const SVGO = require('svgo');
+    const svgo = new SVGO({
+        plugins: [{
+            cleanupAttrs: true,
+        }, {
+            removeDoctype: true,
+        },{
+            removeXMLProcInst: true,
+        },{
+            removeComments: true,
+        },{
+            removeMetadata: true,
+        },{
+            removeTitle: true,
+        },{
+            removeDesc: true,
+        },{
+            removeUselessDefs: true,
+        },{
+            removeEditorsNSData: true,
+        },{
+            removeEmptyAttrs: true,
+        },{
+            removeHiddenElems: true,
+        },{
+            removeEmptyText: true,
+        },{
+            removeEmptyContainers: true,
+        },{
+            removeDimensions: true,
+        },{
+            cleanupEnableBackground: true,
+        },{
+            convertStyleToAttrs: true,
+        },{
+            convertColors: true,
+        },{
+            convertPathData: true,
+        },{
+            convertTransform: true,
+        },{
+            removeUnknownsAndDefaults: true,
+        },{
+            removeNonInheritableGroupAttrs: true,
+        },{
+            removeUselessStrokeAndFill: true,
+        },{
+            removeUnusedNS: true,
+        },{
+            cleanupIDs: true,
+        },{
+            cleanupNumericValues: true,
+        },{
+            cleanupListOfValues: true,
+        },{
+            moveElemsAttrsToGroup: true,
+        },{
+            moveGroupAttrsToElems: true,
+        },{
+            collapseGroups: true,
+        },{
+            removeRasterImages: false,
+        },{
+            mergePaths: true,
+        },{
+            convertShapeToPath: true,
+        },{
+            sortAttrs: true,
+        },{
+            removeDimensions: true,
+        }, {
+            removeScriptElements: true
+        }]
+    });
+    const result = await svgo.optimize(content);
+    return result.data;
+}
+
 async function svg2js(content) {
   return new Promise(function(resolve, reject) {
     var parser = new Parser();
@@ -85,6 +164,7 @@ async function removeWidthAndHeight(svg) {
 
 module.exports = async function autoCropSvg(svg) {
   svg = svg.toString();
+  svg = await svgo(svg);
   // get a maximum possible viewbox which covers the whole region;
   const {x, y, width, height } = await getViewbox(svg);
   const maxSizeX = Math.max(Math.abs(x), Math.abs(x + width));
@@ -190,6 +270,8 @@ module.exports = async function autoCropSvg(svg) {
   // console.info(newViewbox);
   // apply a new viewbox to the svg
   const newSvg = await updateViewbox(svg, newViewbox);
+
+  // validate svg for common errors
   return newSvg;
 }
 

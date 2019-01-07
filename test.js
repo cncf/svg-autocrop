@@ -8,16 +8,16 @@ async function main() {
         const inputFile = `./fixtures/${file}`;
         const outputFile = `./fixtures/${file.replace('input','output')}`;
         const inputContent = require('fs').readFileSync(inputFile, 'utf-8');
-        const outputContent = require('fs').readFileSync(outputFile, 'utf-8');
         const convertedSvg = await autoCropSvg(inputContent);
-        // console.info(inputFile);
-        // require('fs').writeFileSync(outputFile, convertedSvg);
-        if (convertedSvg !== outputContent) {
-            console.info(`Fixture do not match: ${inputFile}, ${outputFile}`, convertedSvg.substring(0, 1000), outputContent.substring(0, 1000));
-            process.exit(1);
-        } else {
-            console.info('Match');
-        }
+        console.info(inputFile);
+        require('fs').writeFileSync(outputFile, convertedSvg);
+        // const outputContent = require('fs').readFileSync(outputFile, 'utf-8');
+        // if (convertedSvg !== outputContent) {
+            // console.info(`Fixture do not match: ${inputFile}, ${outputFile}`, convertedSvg.substring(0, 1000), outputContent.substring(0, 1000));
+            // process.exit(1);
+        // } else {
+            // console.info('Match');
+        // }
     }
 }
 main().catch(console.info);
