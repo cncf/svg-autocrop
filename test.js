@@ -5,7 +5,7 @@ const captureMode = false;
 async function main() {
     const files = require('fs').readdirSync('fixtures');
     const inputFiles = files.filter( (x) => x.indexOf('input') !== -1);
-    for (var file of inputFiles.slice(0, 5555)) {
+    for (var file of inputFiles) {
         const inputFile = `./fixtures/${file}`;
         const outputFile = `./fixtures/${file.replace('input','output')}`;
         const errorFile = `./fixtures/${file.replace('input','error').replace('.svg', '.txt')}`;
