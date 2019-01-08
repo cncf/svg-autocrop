@@ -13,7 +13,8 @@ async function main() {
             require('fs').writeFileSync(outputFile, convertedSvg);
             console.info(`Processed ${inputFile} and saved to ${outputFile}`);
         } catch(ex) {
-            console.info(`Failed to process ${inputFile}, error is ${ex.message.substring(0, 1000)}`);
+            const message = ex.message || ex;
+            console.info(`Failed to process ${inputFile}, error is ${message.substring(0, 1000)}`);
         }
     }
 }
