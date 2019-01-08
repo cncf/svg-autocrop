@@ -4,7 +4,8 @@
   "description": "Auto crop svg files",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "fix": "node fix.js"
   },
   "repository": {
     "type": "git",
