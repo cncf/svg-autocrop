@@ -1,0 +1,4 @@
+Error in parsing SVG: Invalid character entity
+Line: 1
+Column: 52
+Char: ;
