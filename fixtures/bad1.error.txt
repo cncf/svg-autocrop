@@ -1,0 +1,1 @@
+SVG file has a <text> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server
