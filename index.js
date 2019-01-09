@@ -273,10 +273,10 @@ module.exports = async function autoCropSvg(svg) {
   // console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
-  newViewbox.x = newViewbox.x - newViewbox.width * extraRatio;
-  newViewbox.y = newViewbox.y - newViewbox.height * extraRatio;
-  newViewbox.width = newViewbox.width * (1 + 2 * extraRatio);
-  newViewbox.height = newViewbox.height * (1 + 2 * extraRatio);
+  newViewbox.x = newViewbox.x - Math.max(newViewbox.width * extraRatio, 5);
+  newViewbox.y = newViewbox.y - Math.max(newViewbox.height * extraRatio, 5);
+  newViewbox.width = newViewbox.width  + 2 * Math.max(newViewbox.width * extraRatio, 5);
+  newViewbox.height = newViewbox.height + 2 * Math.max(newViewbox.height * extraRatio, 5);
 
   // translate to original coordinats
   newViewbox.x = newViewbox.x - maxSizeX;
