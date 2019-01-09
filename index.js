@@ -3,6 +3,9 @@ const _  = require('lodash');
 const Jimp = require('jimp');
 const { convert } = require('convert-svg-to-png');
 
+const maxSize = 4000;
+const scale = 0.25;
+
 async function svgo(content) {
     const SVGO = require('svgo');
     const svgo = new SVGO({
@@ -118,7 +121,7 @@ async function getViewbox(content) {
   try {
     const js = await svg2js(content);
     if (!js.svg.$.viewBox) {
-      return {x: 0, y: 0, width: 2000, height: 2000};
+      return {x: 0, y: 0, width: maxSize, height: maxSize};
     } else {
       const viewBox =  js.svg.$.viewBox;
       const [ x, y, width, height ] = viewBox.replace(/,/g, '').split(' ').map( (x) => +x);
@@ -132,7 +135,7 @@ async function getViewbox(content) {
       // console.info(viewBox);
       return {x, y, width, height };
     } else {
-      return {x: 0, y: 0, width: 2000, height: 2000};
+      return {x: 0, y: 0, width: maxSize, height: maxSize};
     }
   }
 }
@@ -201,7 +204,7 @@ module.exports = async function autoCropSvg(svg) {
   svg = await updateViewbox(svg, {
     x: -maxSizeX,
     y: -maxSizeY,
-    width: 2* maxSizeX,
+    width: 2 * maxSizeX,
     height: 2 * maxSizeY
   });
   // width and height attributes break the viewBox
@@ -213,7 +216,7 @@ module.exports = async function autoCropSvg(svg) {
   var counter = 3;
   async function tryToConvert() {
     try {
-      return await convert(svg, {width: 2 * maxSizeX,height: 2 * maxSizeY, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+      return await convert(svg, {scale: 0.25, width: 2 * maxSizeX,height: 2 * maxSizeY, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
     } catch(ex) {
       counter -= 1;
       if (counter <= 0) {
@@ -287,14 +290,16 @@ module.exports = async function autoCropSvg(svg) {
   // console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
-  newViewbox.x = newViewbox.x - Math.max(newViewbox.width * extraRatio, 5);
-  newViewbox.y = newViewbox.y - Math.max(newViewbox.height * extraRatio, 5);
-  newViewbox.width = newViewbox.width  + 2 * Math.max(newViewbox.width * extraRatio, 5);
-  newViewbox.height = newViewbox.height + 2 * Math.max(newViewbox.height * extraRatio, 5);
+  newViewbox.x = newViewbox.x - Math.max(newViewbox.width * extraRatio, 1);
+  newViewbox.y = newViewbox.y - Math.max(newViewbox.height * extraRatio, 1);
+  newViewbox.width = newViewbox.width  + 2 * Math.max(newViewbox.width * extraRatio, 1);
+  newViewbox.height = newViewbox.height + 2 * Math.max(newViewbox.height * extraRatio, 1);
 
   // translate to original coordinats
-  newViewbox.x = newViewbox.x - maxSizeX;
-  newViewbox.y = newViewbox.y - maxSizeY;
+  newViewbox.x = newViewbox.x / scale - maxSizeX;
+  newViewbox.y = newViewbox.y / scale - maxSizeY;
+  newViewbox.width = newViewbox.width / scale;
+  newViewbox.height = newViewbox.height / scale;
   // console.info(newViewbox);
   // apply a new viewbox to the svg
   const newSvg = await updateViewbox(svg, newViewbox);
