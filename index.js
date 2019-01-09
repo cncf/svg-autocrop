@@ -9,6 +9,8 @@ async function svgo(content) {
         plugins: [{
             cleanupAttrs: true,
         }, {
+            inlineStyles: true
+        }, {
             removeDoctype: true,
         },{
             removeXMLProcInst: true,
@@ -36,6 +38,8 @@ async function svgo(content) {
             removeDimensions: true,
         },{
             cleanupEnableBackground: true,
+        },{
+            minifyStyles: true,
         },{
             convertStyleToAttrs: true,
         },{
@@ -79,6 +83,7 @@ async function svgo(content) {
         }]
     });
     const result = await svgo.optimize(content);
+    console.info(result);
     return result.data;
 }
 
@@ -148,15 +153,18 @@ async function removeWidthAndHeight(svg) {
 
   let result = partWithSvg;
   if (existingWidth) {
-      result = result.replace(`width="${existingWidth}"`, '');
+      result = result.replace(` width="${existingWidth}"`, '');
+      result = result.replace(` width="${existingWidth}"`, '');
       // console.info('replcaing width');
   };
   if (existingHeight) {
+      result = result.replace(` height="${existingHeight}"`, '');
       result = result.replace(`height="${existingHeight}"`, '');
       // console.info('replcaing height', `height="${existingHeight}"`);
   }
   if (existingPreserveAspectRatio) {
       // console.info('replcaing ar');
+      result = result.replace(` preserveAspectRatio="${existingPreserveAspectRatio}"`, '');
       result = result.replace(`preserveAspectRatio="${existingPreserveAspectRatio}"`, '');
   }
   return svg.substring(0, svgElementIndex) + result;
@@ -164,6 +172,11 @@ async function removeWidthAndHeight(svg) {
 
 module.exports = async function autoCropSvg(svg) {
   svg = svg.toString();
+  // runnint it 5 times helps to reduce amount of nested groups
+  svg = await svgo(svg);
+  svg = await svgo(svg);
+  svg = await svgo(svg);
+  svg = await svgo(svg);
   svg = await svgo(svg);
   // get a maximum possible viewbox which covers the whole region;
   const {x, y, width, height } = await getViewbox(svg);
@@ -179,6 +192,7 @@ module.exports = async function autoCropSvg(svg) {
   });
   // width and height attributes break the viewBox
   svg = await removeWidthAndHeight(svg);
+  console.info(svg.substring(0, 500));;
 
 
   // attempt to convert it again if it fails

@@ -1,10 +1,12 @@
 const _ = require('lodash');
 const autoCropSvg  = require('./index');
-const captureMode = false;
+const captureMode = !!process.env['CAPTURE'];
+const match = process.env['MATCH'];
 
 async function main() {
     const files = require('fs').readdirSync('fixtures');
-    const inputFiles = files.filter( (x) => x.indexOf('input') !== -1);
+    const inputFiles = files.filter( (x) => x.indexOf('input') !== -1).filter( match ? ((x) => x.indexOf(match) !== -1) : (x) => true) ;
+    console.info(inputFiles);
     for (var file of inputFiles) {
         const inputFile = `./fixtures/${file}`;
         const outputFile = `./fixtures/${file.replace('input','output')}`;
