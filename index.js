@@ -80,10 +80,24 @@ async function svgo(content) {
             removeDimensions: true,
         }, {
             removeScriptElements: true
+        }, {
+            cleanupSvgDeclaration: {
+                type: 'perItem',
+                fn: function(item) {
+                    if (item.elem === 'svg') {
+                        const xmlns = item.attrs.xmlns;
+                        const xmlnsxlink = item.attrs['xmlns:xlink'];
+                        item.attrs = { xmlns: xmlns};
+                        if (xmlnsxlink) {
+                            item.attrs['xmlns:xlink'] = xmlnsxlink;
+                        }
+                    }
+                }
+            }
         }]
     });
     const result = await svgo.optimize(content);
-    console.info(result);
+    // console.info(result);
     return result.data;
 }
 
@@ -192,7 +206,7 @@ module.exports = async function autoCropSvg(svg) {
   });
   // width and height attributes break the viewBox
   svg = await removeWidthAndHeight(svg);
-  console.info(svg.substring(0, 500));;
+  // console.info(svg.substring(0, 500));;
 
 
   // attempt to convert it again if it fails
