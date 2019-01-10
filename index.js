@@ -6,7 +6,7 @@ const { convert } = require('convert-svg-to-png');
 const maxSize = 4000; //original SVG files should be up to this size
 const scale = 0.25; // and we scale it back to just 1000 pixels to speed up everything
 
-async function svgo(content) {
+async function svgo({content, title}) {
     const SVGO = require('svgo');
     const svgo = new SVGO({
         plugins: [{
@@ -100,6 +100,9 @@ async function svgo(content) {
         }]
     });
     const result = await svgo.optimize(content);
+    if (!title) {
+        return result.data;
+    }
     const svgo2 = new SVGO({
         full: true,
         plugins: [{
@@ -119,7 +122,7 @@ async function svgo(content) {
                         elem: 'title',
                         prefix: '',
                         local: 'title',
-                        content: [addHelpers({text: 'test'})]
+                        content: [addHelpers({text: title})]
                     })].concat(root.content);
                     return data;
                 }
@@ -217,11 +220,11 @@ module.exports = async function autoCropSvg(svg, options) {
   options = options || {};
   svg = svg.toString();
   // runnint it 5 times helps to reduce amount of nested groups
-  svg = await svgo(svg);
-  svg = await svgo(svg);
-  svg = await svgo(svg);
-  svg = await svgo(svg);
-  svg = await svgo(svg);
+  svg = await svgo({content: svg, title: options.title});
+  svg = await svgo({content: svg, title: options.title});
+  svg = await svgo({content: svg, title: options.title});
+  svg = await svgo({content: svg, title: options.title});
+  svg = await svgo({content: svg, title: options.title});
   // get a maximum possible viewbox which covers the whole region;
   const {x, y, width, height } = await getViewbox(svg);
   const maxSizeX = Math.max(Math.abs(x), Math.abs(x + width));
