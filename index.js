@@ -286,7 +286,8 @@ module.exports = async function autoCropSvg(svg, options) {
       if (!left || !top || !right || !bottom) {
           throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
       }
-      const newViewbox = { x: left, y: top, width: right - left, height: bottom - top };
+      // add a 1 pixel border around
+      const newViewbox = { x: left - 1, y: top - 1, width: right - left + 2, height: bottom - top + 2 };
       return newViewbox;
   }
 
