@@ -297,6 +297,11 @@ module.exports = async function autoCropSvg(svg, options) {
 
   async function getCropRegion() {
       let top, left, right, bottom;
+      // pixels go in pack of 4 bytes in the R G B A order
+      // thus a pixel has an offset of 4 * (y * width + x)
+      // and an alpha channel is at the last position, that a + 3 offset
+
+      // scan from top to bottom, left to right till we find a non transparent pixel
       for (var y = 0; y < image.bitmap.height; y++) {
           for (var x = 0; x < image.bitmap.width; x++) {
               const idx = (image.bitmap.width * y + x) * 4;
@@ -310,6 +315,7 @@ module.exports = async function autoCropSvg(svg, options) {
               break;
           }
       }
+      // scan from bottom to top, left to right till we find a non transparent pixel
       for (var y = image.bitmap.height - 1; y >= 0; y--) {
           for (var x = 0; x < image.bitmap.width; x++) {
               const idx = (image.bitmap.width * y + x) * 4;
@@ -323,6 +329,7 @@ module.exports = async function autoCropSvg(svg, options) {
               break;
           }
       }
+      // scan from left to right, top to bottom till we find a non transparent pixel
       for (var x = 0; x < image.bitmap.width; x++) {
           for (var y = 0; y < image.bitmap.height; y++) {
               const idx = (image.bitmap.width * y + x) * 4;
@@ -336,6 +343,7 @@ module.exports = async function autoCropSvg(svg, options) {
               break;
           }
       }
+      // scan from right to left, top to bottom till we find a non transparent pixel
       for (var x = image.bitmap.width - 1; x >= 0; x--) {
           for (var y = 0; y < image.bitmap.height; y++) {
               const idx = (image.bitmap.width * y + x) * 4;
