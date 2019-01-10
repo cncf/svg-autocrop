@@ -296,26 +296,71 @@ module.exports = async function autoCropSvg(svg, options) {
   }
 
   async function getCropRegion() {
-    const oldCrop = image.crop;
-    let newViewbox = { x: 0, y: 0, width: 2 * maxSizeX, height: 2 * maxSizeY };
-    // console.info('calc crop region');
-    image.crop = function(x, y, w, h) {
-      newViewbox = {x: x, y: y, width: w, height: h};
-      // console.info('crop: ', newViewbox);
-    }
-    // console.info('Autocrop!');
-    await image.autocrop(false);
-    image.crop = oldCrop;
-    return newViewbox;
+      let top, left, right, bottom;
+      for (var y = 0; y < image.bitmap.height; y++) {
+          for (var x = 0; x < image.bitmap.width; x++) {
+              const idx = (image.bitmap.width * y + x) * 4;
+              const alpha = image.bitmap.data[idx + 3];
+              if (alpha !== 0) {
+                  top = y;
+                  break;
+              }
+          }
+          if (top) {
+              break;
+          }
+      }
+      for (var y = image.bitmap.height - 1; y >= 0; y--) {
+          for (var x = 0; x < image.bitmap.width; x++) {
+              const idx = (image.bitmap.width * y + x) * 4;
+              const alpha = image.bitmap.data[idx + 3];
+              if (alpha !== 0) {
+                  bottom = y;
+                  break;
+              }
+          }
+          if (bottom) {
+              break;
+          }
+      }
+      for (var x = 0; x < image.bitmap.width; x++) {
+          for (var y = 0; y < image.bitmap.height; y++) {
+              const idx = (image.bitmap.width * y + x) * 4;
+              const alpha = image.bitmap.data[idx + 3];
+              if (alpha !== 0) {
+                  left = x;
+                  break;
+              }
+          }
+          if (left) {
+              break;
+          }
+      }
+      for (var x = image.bitmap.width - 1; x >= 0; x--) {
+          for (var y = 0; y < image.bitmap.height; y++) {
+              const idx = (image.bitmap.width * y + x) * 4;
+              const alpha = image.bitmap.data[idx + 3];
+              if (alpha !== 0) {
+                  right = x;
+                  break;
+              }
+          }
+          if (right) {
+              break;
+          }
+      }
+      if (!left || !top || !right || !bottom) {
+          throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
+      }
+      const newViewbox = { x: left, y: top, width: right - left, height: bottom - top };
+      return newViewbox;
   }
 
 
   const newViewbox = await getCropRegion();
   if (process.env.DEBUG_SVG) {
-    image.autocrop(false);
-    // console.info(image);
-    await save('/tmp/r3.png');
-
+    // image.crop(false);
+    // await save('/tmp/r3.png');
   }
   // console.info(newViewbox);
   // add a bit of padding around the svg
