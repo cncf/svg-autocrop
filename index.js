@@ -3,7 +3,7 @@ const Jimp = require('jimp');
 const { convert } = require('convert-svg-to-png');
 
 const maxSize = 4000; //original SVG files should be up to this size
-const scale = 0.25; // and we scale it back to just 1000 pixels to speed up everything
+const scale = 1; // and we scale it back to just 1000 pixels to speed up everything
 
 async function svgo({content, title}) {
     const SVGO = require('svgo');
@@ -239,7 +239,7 @@ module.exports = async function autoCropSvg(svg, options) {
   var counter = 3;
   async function tryToConvert() {
     try {
-      return await convert(svg, {scale: 0.25, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+      return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
     } catch(ex) {
       counter -= 1;
       if (counter <= 0) {
