@@ -3,8 +3,8 @@ const _  = require('lodash');
 const Jimp = require('jimp');
 const { convert } = require('convert-svg-to-png');
 
-const maxSize = 4000;
-const scale = 0.25;
+const maxSize = 4000; //original SVG files should be up to this size
+const scale = 0.25; // and we scale it back to just 1000 pixels to speed up everything
 
 async function svgo(content) {
     const SVGO = require('svgo');
