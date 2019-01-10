@@ -143,6 +143,76 @@ async function updateViewbox(content, {x, y, width, height}) {
   }
 }
 
+async function getCropRegion(image) {
+    let top, left, right, bottom;
+    // pixels go in pack of 4 bytes in the R G B A order
+    // thus a pixel has an offset of 4 * (y * width + x)
+    // and an alpha channel is at the last position, that a + 3 offset
+
+    // scan from top to bottom, left to right till we find a non transparent pixel
+    for (var y = 0; y < image.bitmap.height; y++) {
+        for (var x = 0; x < image.bitmap.width; x++) {
+            const idx = (image.bitmap.width * y + x) * 4;
+            const alpha = image.bitmap.data[idx + 3];
+            if (alpha !== 0) {
+                top = y;
+                break;
+            }
+        }
+        if (top) {
+            break;
+        }
+    }
+    // scan from bottom to top, left to right till we find a non transparent pixel
+    for (var y = image.bitmap.height - 1; y >= 0; y--) {
+        for (var x = 0; x < image.bitmap.width; x++) {
+            const idx = (image.bitmap.width * y + x) * 4;
+            const alpha = image.bitmap.data[idx + 3];
+            if (alpha !== 0) {
+                bottom = y;
+                break;
+            }
+        }
+        if (bottom) {
+            break;
+        }
+    }
+    // scan from left to right, top to bottom till we find a non transparent pixel
+    for (var x = 0; x < image.bitmap.width; x++) {
+        for (var y = 0; y < image.bitmap.height; y++) {
+            const idx = (image.bitmap.width * y + x) * 4;
+            const alpha = image.bitmap.data[idx + 3];
+            if (alpha !== 0) {
+                left = x;
+                break;
+            }
+        }
+        if (left) {
+            break;
+        }
+    }
+    // scan from right to left, top to bottom till we find a non transparent pixel
+    for (var x = image.bitmap.width - 1; x >= 0; x--) {
+        for (var y = 0; y < image.bitmap.height; y++) {
+            const idx = (image.bitmap.width * y + x) * 4;
+            const alpha = image.bitmap.data[idx + 3];
+            if (alpha !== 0) {
+                right = x;
+                break;
+            }
+        }
+        if (right) {
+            break;
+        }
+    }
+    if (!left || !top || !right || !bottom) {
+        throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
+    }
+    // add a 1 pixel border around
+    const newViewbox = { x: left - 1, y: top - 1, width: right - left + 2, height: bottom - top + 2 };
+    return newViewbox;
+}
+
 module.exports = async function autoCropSvg(svg, options) {
   options = options || {};
   svg = svg.toString();
@@ -153,26 +223,22 @@ module.exports = async function autoCropSvg(svg, options) {
   svg = await svgo({content: svg, title: options.title});
   svg = await svgo({content: svg, title: options.title});
   // get a maximum possible viewbox which covers the whole region;
-  const x = 0;
-  const y = 0;
   const width = maxSize;
   const height = maxSize;
-  const maxSizeX = Math.max(Math.abs(x), Math.abs(x + width));
-  const maxSizeY = Math.max(Math.abs(y), Math.abs(y + height));
 
   //get an svg in that new viewbox
   svg = await updateViewbox(svg, {
-    x: -maxSizeX,
-    y: -maxSizeY,
-    width: 2 * maxSizeX,
-    height: 2 * maxSizeY
+    x: -maxSize,
+    y: -maxSize,
+    width: 2 * maxSize,
+    height: 2 * maxSize
   });
 
   // attempt to convert it again if it fails
   var counter = 3;
   async function tryToConvert() {
     try {
-      return await convert(svg, {scale: 0.25, width: 2 * maxSizeX,height: 2 * maxSizeY, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+      return await convert(svg, {scale: 0.25, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
     } catch(ex) {
       counter -= 1;
       if (counter <= 0) {
@@ -199,7 +265,7 @@ module.exports = async function autoCropSvg(svg, options) {
       await save('/tmp/r1.png');
   }
 
-  // If anything is completely white - make it black
+  // If anything is completely white - make it black and transparent
   await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
     // x, y is the position of this pixel on the image
     // idx is the position start position of this rgba tuple in the bitmap Buffer
@@ -221,78 +287,9 @@ module.exports = async function autoCropSvg(svg, options) {
     await save('/tmp/r2.png');
   }
 
-  async function getCropRegion() {
-      let top, left, right, bottom;
-      // pixels go in pack of 4 bytes in the R G B A order
-      // thus a pixel has an offset of 4 * (y * width + x)
-      // and an alpha channel is at the last position, that a + 3 offset
-
-      // scan from top to bottom, left to right till we find a non transparent pixel
-      for (var y = 0; y < image.bitmap.height; y++) {
-          for (var x = 0; x < image.bitmap.width; x++) {
-              const idx = (image.bitmap.width * y + x) * 4;
-              const alpha = image.bitmap.data[idx + 3];
-              if (alpha !== 0) {
-                  top = y;
-                  break;
-              }
-          }
-          if (top) {
-              break;
-          }
-      }
-      // scan from bottom to top, left to right till we find a non transparent pixel
-      for (var y = image.bitmap.height - 1; y >= 0; y--) {
-          for (var x = 0; x < image.bitmap.width; x++) {
-              const idx = (image.bitmap.width * y + x) * 4;
-              const alpha = image.bitmap.data[idx + 3];
-              if (alpha !== 0) {
-                  bottom = y;
-                  break;
-              }
-          }
-          if (bottom) {
-              break;
-          }
-      }
-      // scan from left to right, top to bottom till we find a non transparent pixel
-      for (var x = 0; x < image.bitmap.width; x++) {
-          for (var y = 0; y < image.bitmap.height; y++) {
-              const idx = (image.bitmap.width * y + x) * 4;
-              const alpha = image.bitmap.data[idx + 3];
-              if (alpha !== 0) {
-                  left = x;
-                  break;
-              }
-          }
-          if (left) {
-              break;
-          }
-      }
-      // scan from right to left, top to bottom till we find a non transparent pixel
-      for (var x = image.bitmap.width - 1; x >= 0; x--) {
-          for (var y = 0; y < image.bitmap.height; y++) {
-              const idx = (image.bitmap.width * y + x) * 4;
-              const alpha = image.bitmap.data[idx + 3];
-              if (alpha !== 0) {
-                  right = x;
-                  break;
-              }
-          }
-          if (right) {
-              break;
-          }
-      }
-      if (!left || !top || !right || !bottom) {
-          throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
-      }
-      // add a 1 pixel border around
-      const newViewbox = { x: left - 1, y: top - 1, width: right - left + 2, height: bottom - top + 2 };
-      return newViewbox;
-  }
 
 
-  const newViewbox = await getCropRegion();
+  const newViewbox = await getCropRegion(image);
   if (process.env.DEBUG_SVG) {
     // image.crop(false);
     // await save('/tmp/r3.png');
@@ -306,8 +303,8 @@ module.exports = async function autoCropSvg(svg, options) {
   newViewbox.height = newViewbox.height + 2 * Math.max(newViewbox.height * extraRatio, 1);
 
   // translate to original coordinats
-  newViewbox.x = newViewbox.x / scale - maxSizeX;
-  newViewbox.y = newViewbox.y / scale - maxSizeY;
+  newViewbox.x = newViewbox.x / scale - maxSize;
+  newViewbox.y = newViewbox.y / scale - maxSize;
   newViewbox.width = newViewbox.width / scale;
   newViewbox.height = newViewbox.height / scale;
   // console.info(newViewbox);
@@ -324,11 +321,6 @@ module.exports = async function autoCropSvg(svg, options) {
   if (newSvg.indexOf('<tspan') !== -1) {
       throw new Error('SVG file has a <tspan> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
   }
-
-  if (options.title) {
-
-  }
-
 
   return newSvg;
 }
