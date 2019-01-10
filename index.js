@@ -209,6 +209,7 @@ async function getCropRegion(image) {
         throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
     }
     // add a 1 pixel border around
+    // console.info(left, top, right - left, bottom - top);
     const newViewbox = { x: left - 1, y: top - 1, width: right - left + 2, height: bottom - top + 2 };
     return newViewbox;
 }
@@ -297,10 +298,10 @@ module.exports = async function autoCropSvg(svg, options) {
   // console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
-  newViewbox.x = newViewbox.x - Math.max(newViewbox.width * extraRatio, 1);
-  newViewbox.y = newViewbox.y - Math.max(newViewbox.height * extraRatio, 1);
-  newViewbox.width = newViewbox.width  + 2 * Math.max(newViewbox.width * extraRatio, 1);
-  newViewbox.height = newViewbox.height + 2 * Math.max(newViewbox.height * extraRatio, 1);
+  newViewbox.x = newViewbox.x - newViewbox.width * extraRatio;
+  newViewbox.y = newViewbox.y - newViewbox.height * extraRatio;
+  newViewbox.width = newViewbox.width  + 2 * newViewbox.width * extraRatio;
+  newViewbox.height = newViewbox.height + 2 * newViewbox.height * extraRatio;
 
   // translate to original coordinats
   newViewbox.x = newViewbox.x / scale - maxSize;
