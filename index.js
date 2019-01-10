@@ -100,8 +100,34 @@ async function svgo(content) {
         }]
     });
     const result = await svgo.optimize(content);
-    // console.info(result);
-    return result.data;
+    const svgo2 = new SVGO({
+        full: true,
+        plugins: [{
+            insertTitle: {
+                type: 'full',
+                fn: function(data) {
+                    const root = data.content[0];
+                    const addHelpers = function(x) {
+                        x.isElem = root.isElem.bind(x);
+                        x.isEmpty = root.isEmpty.bind(x);
+                        x.hasAttr = root.hasAttr.bind(x);
+                        x.attr = root.attr.bind(x);
+                        x.eachAttr = root.eachAttr.bind(x);
+                        return x;
+                    }
+                    root.content = [addHelpers({
+                        elem: 'title',
+                        prefix: '',
+                        local: 'title',
+                        content: [addHelpers({text: 'test'})]
+                    })].concat(root.content);
+                    return data;
+                }
+            }
+        }]
+    });
+    const result2 = await svgo2.optimize(result.data);
+    return result2.data;
 }
 
 async function svg2js(content) {
@@ -187,7 +213,8 @@ async function removeWidthAndHeight(svg) {
   return svg.substring(0, svgElementIndex) + result;
 }
 
-module.exports = async function autoCropSvg(svg) {
+module.exports = async function autoCropSvg(svg, options) {
+  options = options || {};
   svg = svg.toString();
   // runnint it 5 times helps to reduce amount of nested groups
   svg = await svgo(svg);
@@ -313,6 +340,10 @@ module.exports = async function autoCropSvg(svg) {
   }
   if (newSvg.indexOf('<tspan') !== -1) {
       throw new Error('SVG file has a <tspan> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
+  }
+
+  if (options.title) {
+
   }
 
 
