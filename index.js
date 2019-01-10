@@ -1,4 +1,3 @@
-const {Builder, Parser} = require('xml2js');
 const _  = require('lodash');
 const Jimp = require('jimp');
 const { convert } = require('convert-svg-to-png');
@@ -133,42 +132,6 @@ async function svgo({content, title}) {
     return result2.data;
 }
 
-async function svg2js(content) {
-  return new Promise(function(resolve, reject) {
-    var parser = new Parser();
-    parser.parseString(content, function (err, result) {
-      if (err) {
-        reject(err);
-      } else {
-      resolve(result);
-      }
-    });
-  })
-}
-
-async function getViewbox(content) {
-  try {
-    const js = await svg2js(content);
-    if (!js.svg.$.viewBox) {
-      return {x: 0, y: 0, width: maxSize, height: maxSize};
-    } else {
-      const viewBox =  js.svg.$.viewBox;
-      const [ x, y, width, height ] = viewBox.replace(/,/g, '').split(' ').map( (x) => +x);
-      // console.info(viewBox);
-      return {x, y, width, height };
-    }
-  } catch(ex) {
-    const viewBox = content.match(/viewBox="(.*?)"/)[1];
-    if (viewBox) {
-      const [ x, y, width, height ] = viewBox.replace(/,/g, '').split(' ').map( (x) => +x);
-      // console.info(viewBox);
-      return {x, y, width, height };
-    } else {
-      return {x: 0, y: 0, width: maxSize, height: maxSize};
-    }
-  }
-}
-
 async function updateViewbox(content, {x, y, width, height}) {
   const viewBox = (content.match(/viewBox="(.*?)"/) || {})[1];
   const newValue = `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
@@ -178,42 +141,6 @@ async function updateViewbox(content, {x, y, width, height}) {
   } else {
     return content.replace('<svg ', `<svg viewBox="${newValue}" `);
   }
-}
-
-async function removeWidthAndHeight(svg) {
-  const svgElementIndex = svg.indexOf('<svg');
-  if (svgElementIndex === -1) {
-      return svg;
-  }
-  const partWithSvg = svg.substring(svgElementIndex);
-  var js;
-  try  {
-    js = await svg2js(svg);
-  } catch(ex) {
-    return svg; //
-  }
-
-  const existingWidth = js.svg.$.width;
-  const existingHeight = js.svg.$.height;
-  const existingPreserveAspectRatio = js.svg.$.existingAspectRatio;
-
-  let result = partWithSvg;
-  if (existingWidth) {
-      result = result.replace(` width="${existingWidth}"`, '');
-      result = result.replace(` width="${existingWidth}"`, '');
-      // console.info('replcaing width');
-  };
-  if (existingHeight) {
-      result = result.replace(` height="${existingHeight}"`, '');
-      result = result.replace(`height="${existingHeight}"`, '');
-      // console.info('replcaing height', `height="${existingHeight}"`);
-  }
-  if (existingPreserveAspectRatio) {
-      // console.info('replcaing ar');
-      result = result.replace(` preserveAspectRatio="${existingPreserveAspectRatio}"`, '');
-      result = result.replace(`preserveAspectRatio="${existingPreserveAspectRatio}"`, '');
-  }
-  return svg.substring(0, svgElementIndex) + result;
 }
 
 module.exports = async function autoCropSvg(svg, options) {
@@ -226,7 +153,10 @@ module.exports = async function autoCropSvg(svg, options) {
   svg = await svgo({content: svg, title: options.title});
   svg = await svgo({content: svg, title: options.title});
   // get a maximum possible viewbox which covers the whole region;
-  const {x, y, width, height } = await getViewbox(svg);
+  const x = 0;
+  const y = 0;
+  const width = maxSize;
+  const height = maxSize;
   const maxSizeX = Math.max(Math.abs(x), Math.abs(x + width));
   const maxSizeY = Math.max(Math.abs(y), Math.abs(y + height));
 
@@ -237,10 +167,6 @@ module.exports = async function autoCropSvg(svg, options) {
     width: 2 * maxSizeX,
     height: 2 * maxSizeY
   });
-  // width and height attributes break the viewBox
-  svg = await removeWidthAndHeight(svg);
-  // console.info(svg.substring(0, 500));;
-
 
   // attempt to convert it again if it fails
   var counter = 3;
