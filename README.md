@@ -37,17 +37,17 @@ svg-autocrop has been developed by [Andrey Kozlov](https://github.com/ZeusTheTru
 
 1. Install with:
 
-```bash
-yarn
-```
+    ```bash
+    yarn
+    ```
 
 2. `mkdir` and add SVGs to `./images`.
 
 3. Run with:
 
-```bash
-node fix
-```
+    ```bash
+    node fix
+    ```
 
 ## Vulnerability reporting
 
