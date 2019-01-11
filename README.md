@@ -27,7 +27,7 @@ can [convert](https://github.com/cncf/landscape#proper-svgs) the text to an imag
 it will reliably render anywhere)
 * Optionally adds a title since that is displayed as the title in the browser tab
 
-svg-autocrop expects an opaque or white background.
+svg-autocrop expects a transparent or a white background.
 
 For more information on recommended rules for collecting logos, please see the [guidelines](https://github.com/cncf/landscape#logos) for the [CNCF Cloud Native Landscape](https://landscape.cncf.io).
 
