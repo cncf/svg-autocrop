@@ -302,10 +302,10 @@ module.exports = async function autoCropSvg(svg, options) {
   let borderY;
   if (newViewbox.width > newViewbox.height) {
       borderX = newViewbox.width * extraRatio;
-      borderY = newViewbox.height * extraRatio;
+      borderY = borderX;
   } else {
-      borderX = newViewbox.width * extraRatio;
       borderY = newViewbox.height * extraRatio;
+      borderX = borderY;
   }
 
   newViewbox.x = newViewbox.x - borderX;
