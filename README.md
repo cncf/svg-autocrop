@@ -1,6 +1,6 @@
 # svg-autocrop
 
-This NPM module transforms SVGs to have a consistent (and small) border on each side 
+This NPM module transforms SVGs to have a consistent (and small) border on each side
 and to remove extraneous tags and attributes, so that the resulting files are as small
 as possible. The code has been tested and refined on hundreds of real world SVGs so as
 to produce reliable results without distortions or to fail with a clear error if there
@@ -32,6 +32,22 @@ svg-autocrop expects a transparent or a white background.
 For more information on recommended rules for collecting logos, please see the [guidelines](https://github.com/cncf/landscape#logos) for the [CNCF Cloud Native Landscape](https://landscape.cncf.io).
 
 svg-autocrop has been developed by [Andrey Kozlov](https://github.com/ZeusTheTrueGod) and [Dan Kohn](https://www.dankohn.com) of [CNCF](https://www.cncf.io).
+
+## Quick Start
+
+1. Install with:
+
+```bash
+yarn
+```
+
+2. `mkdir` and add SVGs to `./images`.
+
+3. Run with:
+
+```bash
+node fix
+```
 
 ## Vulnerability reporting
 
