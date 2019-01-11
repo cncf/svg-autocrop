@@ -16,6 +16,15 @@
   "bugs": {
     "url": "https://github.com/cncf/svg-autocrop/issues"
   },
+  "keywords": [
+    "svg",
+    "crop",
+    "image",
+    "resize",
+    "autocrop",
+    "optimize",
+    "viewbox"
+  ],
   "homepage": "https://github.com/cncf/svg-autocrop#readme",
   "dependencies": {
     "convert-svg-to-png": "0.5.0",
