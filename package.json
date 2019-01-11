@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "node test.js",
-    "fix": "node fix.js"
+    "fix": "node fix.js",
+    "capture": "CAPTURE=1 node test.js",
+    "one-image": "CAPTURE=1 MATCH=kubernetes node test.js"
   },
   "repository": {
     "type": "git",

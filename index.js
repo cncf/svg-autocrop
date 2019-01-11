@@ -210,7 +210,7 @@ async function getCropRegion(image) {
     }
     // add a 1 pixel border around
     // console.info(left, top, right - left, bottom - top);
-    const newViewbox = { x: left - 1, y: top - 1, width: right - left + 2, height: bottom - top + 2 };
+    const newViewbox = { x: left, y: top, width: right - left, height: bottom - top };
     return newViewbox;
 }
 
@@ -298,10 +298,20 @@ module.exports = async function autoCropSvg(svg, options) {
   // console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
-  newViewbox.x = newViewbox.x - newViewbox.width * extraRatio;
-  newViewbox.y = newViewbox.y - newViewbox.height * extraRatio;
-  newViewbox.width = newViewbox.width  + 2 * newViewbox.width * extraRatio;
-  newViewbox.height = newViewbox.height + 2 * newViewbox.height * extraRatio;
+  let borderX;
+  let borderY;
+  if (newViewbox.width > newViewbox.height) {
+      borderX = newViewbox.width * extraRatio;
+      borderY = newViewbox.height * extraRatio;
+  } else {
+      borderX = newViewbox.width * extraRatio;
+      borderY = newViewbox.height * extraRatio;
+  }
+
+  newViewbox.x = newViewbox.x - borderX;
+  newViewbox.y = newViewbox.y - borderY;
+  newViewbox.width = newViewbox.width  + 2 * borderX;
+  newViewbox.height = newViewbox.height + 2 * borderY;
 
   // translate to original coordinats
   newViewbox.x = newViewbox.x / scale - maxSize;

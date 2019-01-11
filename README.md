@@ -48,6 +48,15 @@ svg-autocrop has been developed by [Andrey Kozlov](https://github.com/ZeusTheTru
     ```bash
     node fix
     ```
+## Debugging the project
+* yarn test will run a full check on all the images in the fixture folder
+* CAPTURE=1 yarn test will run an svg-autocrop on all images in the fixture
+folder and then save results
+* MATCH=kubernetes yarn test will run a check only on files matching kubernetes in the
+* CAPTURE=1 MATCH=kubernetes yarn test will run an svg-autocrop only on files matching kubernetes in the
+fixture folder
+* yarn fix will convert svg images in the `images` folder
+
 
 ## Vulnerability reporting
 
