@@ -1,7 +1,7 @@
 {
   "name": "svg-autocrop",
   "version": "1.0.0",
-  "description": "Auto crop svg files",
+  "description": "Auto crop svg files and remove extraneous tags and attributes",
   "main": "index.js",
   "scripts": {
     "test": "node test.js",
@@ -11,8 +11,8 @@
     "type": "git",
     "url": "git+https://github.com/cncf/svg-autocrop.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "CNCF",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/cncf/svg-autocrop/issues"
   },
