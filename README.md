@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/cncf/svg-autocrop.svg?style=svg)](https://circleci.com/gh/cncf/svg-autocrop) [![npm version](https://badge.fury.io/js/svg-autocrop.svg)](https://badge.fury.io/js/svg-autocrop)
+
 # svg-autocrop
 
 This NPM module transforms SVGs to have a consistent (and small) border on each side
