@@ -294,12 +294,16 @@ async function getEstimatedViewbox({svg, scale}) {
 module.exports = async function autoCropSvg(svg, options) {
   options = options || {};
   svg = svg.toString();
-  // runnint it 5 times helps to reduce amount of nested groups
-  svg = await svgo({content: svg, title: options.title});
-  svg = await svgo({content: svg, title: options.title});
-  svg = await svgo({content: svg, title: options.title});
-  svg = await svgo({content: svg, title: options.title});
-  svg = await svgo({content: svg, title: options.title});
+  // running it up to 5 times helps to reduce amount of nested groups
+  let previousSvg = svg;
+  for (var i = 0; i < 5; i ++) {
+      svg = await svgo({content: svg, title: options.title});
+      if (svg === previousSvg) {
+          break;
+      } else {
+          previousSvg = svg;
+      }
+  }
   // get a maximum possible viewbox which covers the whole region;
   const width = maxSize;
   const height = maxSize;
