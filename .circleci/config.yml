@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:11.6.0-stretch
+      - image: circleci/node:current-stretch-browsers-legacy
     working_directory: ~/cncf
     steps:
       - checkout
