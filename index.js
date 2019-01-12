@@ -213,6 +213,10 @@ async function getCropRegion(image) {
     return newViewbox;
 }
 
+// this method works really fast because it gets a scaled png version for a
+// given svg file. So if an svg file is 4000x4000, than a 0.1 scaled version
+// is just 400x400 and thus way faster to process
+// the obvious side effect that we have a +- (1 / scale) error
 async function getEstimatedViewbox({svg, scale}) {
   const svgCopy = svg.toString();
   svg = await updateViewbox(svgCopy, {
@@ -302,7 +306,9 @@ module.exports = async function autoCropSvg(svg, options) {
 
   // get a border on a small scale
   const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.1  });
-  console.info('estimated: ', estimatedViewbox);
+  if (process.env.DEBUG_SVG) {
+      console.info('estimated: ', estimatedViewbox);
+  }
 
   //get an svg in that new viewbox
   svg = await updateViewbox(svg, estimatedViewbox);
@@ -365,8 +371,8 @@ module.exports = async function autoCropSvg(svg, options) {
   if (process.env.DEBUG_SVG) {
     // image.crop(false);
     // await save('/tmp/r3.png');
+      console.info(newViewbox);
   }
-  console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
   let borderX;
@@ -384,7 +390,9 @@ module.exports = async function autoCropSvg(svg, options) {
   newViewbox.width = newViewbox.width  + 2 * borderX;
   newViewbox.height = newViewbox.height + 2 * borderY;
 
-  // translate to original coordinats
+  // translate to original coordinats, our estimated svg
+  // was saved as a png file starting from (estimatedViewbox.x,estimatedViewbox.y)
+  // and having a size (estimatedViewbox.width, estimatedViewbox.height)
   newViewbox.x = newViewbox.x + estimatedViewbox.x;
   newViewbox.y = newViewbox.y + estimatedViewbox.y;
   // console.info(newViewbox);

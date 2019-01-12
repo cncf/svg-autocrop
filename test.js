@@ -14,6 +14,7 @@ async function main() {
         const inputContent = require('fs').readFileSync(inputFile, 'utf-8');
         let convertedSvg;
         let errorMessage;
+        console.info(`Processing: ${inputFile}`);
         try {
             convertedSvg = await autoCropSvg(inputContent, {title: file});
         } catch (ex) {
