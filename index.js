@@ -3,7 +3,6 @@ const Jimp = require('jimp');
 const { convert } = require('convert-svg-to-png');
 
 const maxSize = 4000; //original SVG files should be up to this size
-const scale = 1; // and we scale it back to just 1000 pixels to speed up everything
 
 async function svgo({content, title}) {
     const SVGO = require('svgo');
@@ -214,6 +213,80 @@ async function getCropRegion(image) {
     return newViewbox;
 }
 
+async function getEstimatedViewbox({svg, scale}) {
+  const svgCopy = svg.toString();
+  svg = await updateViewbox(svgCopy, {
+    x: -maxSize,
+    y: -maxSize,
+    width: 2 * maxSize,
+    height: 2 * maxSize
+  });
+
+  // attempt to convert it again if it fails
+  var counter = 3;
+  async function tryToConvert() {
+    try {
+      return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+    } catch(ex) {
+      counter -= 1;
+      if (counter <= 0) {
+        return null;
+      }
+      return await tryToConvert();
+    }
+  }
+
+  const png = await tryToConvert();
+  if (!png) {
+    throw new Error('Not a valid svg');
+  }
+  const image = await Jimp.read(png);
+  async function save(fileName) {
+    const data = await new Promise(function(resolve) {
+        image.getBuffer('image/png', function(err, data) {
+            resolve(data);
+        }); 
+    });
+    require('fs').writeFileSync(fileName, data);
+  }
+  if (process.env.DEBUG_SVG) {
+      await save('/tmp/r01.png');
+  }
+
+  // If anything is completely white - make it black and transparent
+  await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+    // x, y is the position of this pixel on the image
+    // idx is the position start position of this rgba tuple in the bitmap Buffer
+    // this is the image
+
+    var red   = this.bitmap.data[ idx + 0 ];
+    var green = this.bitmap.data[ idx + 1 ];
+    var blue  = this.bitmap.data[ idx + 2 ];
+
+    if (red > 230 && green > 230 && blue > 230) {
+      this.bitmap.data[idx + 0] = 0;
+      this.bitmap.data[idx + 1] = 0;
+      this.bitmap.data[idx + 2] = 0;
+      this.bitmap.data[idx + 3] = 0;
+    }
+  });
+
+  if (process.env.DEBUG_SVG) {
+    await save('/tmp/r02.png');
+  }
+
+  const newViewbox = await getCropRegion(image);
+ 
+  const border = 2 / scale;
+  // translate to original coordinats
+  newViewbox.x = newViewbox.x / scale - maxSize - border;
+  newViewbox.y = newViewbox.y / scale - maxSize - border;
+  newViewbox.width = newViewbox.width / scale + 2 * border;
+  newViewbox.height = newViewbox.height / scale + 2 * border;
+  return newViewbox;
+
+}
+
 module.exports = async function autoCropSvg(svg, options) {
   options = options || {};
   svg = svg.toString();
@@ -227,19 +300,17 @@ module.exports = async function autoCropSvg(svg, options) {
   const width = maxSize;
   const height = maxSize;
 
-  //get an svg in that new viewbox
-  svg = await updateViewbox(svg, {
-    x: -maxSize,
-    y: -maxSize,
-    width: 2 * maxSize,
-    height: 2 * maxSize
-  });
+  // get a border on a small scale
+  const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.1  });
+  console.info('estimated: ', estimatedViewbox);
 
+  //get an svg in that new viewbox
+  svg = await updateViewbox(svg, estimatedViewbox);
   // attempt to convert it again if it fails
   var counter = 3;
   async function tryToConvert() {
     try {
-      return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+      return await convert(svg, {scale: 1, width: estimatedViewbox.width, height: estimatedViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
     } catch(ex) {
       counter -= 1;
       if (counter <= 0) {
@@ -295,7 +366,7 @@ module.exports = async function autoCropSvg(svg, options) {
     // image.crop(false);
     // await save('/tmp/r3.png');
   }
-  // console.info(newViewbox);
+  console.info(newViewbox);
   // add a bit of padding around the svg
   let extraRatio = 0.02;
   let borderX;
@@ -314,10 +385,8 @@ module.exports = async function autoCropSvg(svg, options) {
   newViewbox.height = newViewbox.height + 2 * borderY;
 
   // translate to original coordinats
-  newViewbox.x = newViewbox.x / scale - maxSize;
-  newViewbox.y = newViewbox.y / scale - maxSize;
-  newViewbox.width = newViewbox.width / scale;
-  newViewbox.height = newViewbox.height / scale;
+  newViewbox.x = newViewbox.x + estimatedViewbox.x;
+  newViewbox.y = newViewbox.y + estimatedViewbox.y;
   // console.info(newViewbox);
   // apply a new viewbox to the svg
   const newSvg = await updateViewbox(svg, newViewbox);
