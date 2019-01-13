@@ -4,7 +4,7 @@
   "description": "Auto crop svg files and remove extraneous tags and attributes",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js",
+    "test": "nyc --include=index.js --reporter=text --reporter=html node test.js",
     "fix": "node fix.js",
     "capture": "CAPTURE=1 node test.js",
     "one-image": "CAPTURE=1 MATCH=kubernetes node test.js"
@@ -33,5 +33,8 @@
     "jimp": "0.6.0",
     "lodash": "^4.17.11",
     "svgo": "^1.1.1"
+  },
+  "devDependencies": {
+    "nyc": "^13.1.0"
   }
 }
