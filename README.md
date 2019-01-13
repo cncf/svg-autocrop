@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/cncf/svg-autocrop.svg?style=svg)](https://circleci.com/gh/cncf/svg-autocrop) [![npm version](https://badge.fury.io/js/svg-autocrop.svg)](https://badge.fury.io/js/svg-autocrop) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2450/badge)](https://bestpractices.coreinfrastructure.org/projects/2450) [![Dependency Status](https://img.shields.io/david/cncf/svg-autocrop.svg?style=flat-square)](https://david-dm.org/cncf/svg-autocrop)
+[![CircleCI](https://img.shields.io/circleci/project/github/cncf/svg-autocrop/master.svg?logo=circleci)](https://circleci.com/gh/cncf/svg-autocrop) [![npm version](https://img.shields.io/npm/v/svg-autocrop.svg)](https://www.npmjs.com/package/svg-autocrop) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2450/badge)](https://bestpractices.coreinfrastructure.org/projects/2450) [![Dependency Status](https://img.shields.io/david/cncf/svg-autocrop.svg?style=flat-square)](https://david-dm.org/cncf/svg-autocrop)
 
 # svg-autocrop
 
