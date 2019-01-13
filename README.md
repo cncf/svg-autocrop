@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/cncf/svg-autocrop.svg?style=svg)](https://circleci.com/gh/cncf/svg-autocrop) [![npm version](https://badge.fury.io/js/svg-autocrop.svg)](https://badge.fury.io/js/svg-autocrop) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2450/badge)](https://bestpractices.coreinfrastructure.org/projects/2450)
+[![CircleCI](https://circleci.com/gh/cncf/svg-autocrop.svg?style=svg)](https://circleci.com/gh/cncf/svg-autocrop) [![npm version](https://badge.fury.io/js/svg-autocrop.svg)](https://badge.fury.io/js/svg-autocrop) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2450/badge)](https://bestpractices.coreinfrastructure.org/projects/2450) [![Greenkeeper badge](https://badges.greenkeeper.io/cncf/svg-autocrop.svg)](https://greenkeeper.io/)
 
 # svg-autocrop
 
