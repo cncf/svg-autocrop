@@ -54,7 +54,7 @@ async function svgo({content, title}) {
    
     const svgo = new SVGO({
         plugins: [{
-            cleanupAttrs: false,
+            cleanupAttrs: true,
         }, {
             inlineStyles: true
         }, {
