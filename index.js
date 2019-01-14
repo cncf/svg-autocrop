@@ -19,7 +19,7 @@ const makeHelpers = function(root) {
 async function svgo({content, title}) {
     let rootStyle = '';
     let result;
-    const svgo0 = new SVGO({
+    result = await (new SVGO({
         full: true,
 	plugins: [{
 		removeDoctype: true,
@@ -49,10 +49,9 @@ async function svgo({content, title}) {
                 }
 	    }
 	}]
-    });
-    result = await svgo0.optimize(content);
+    })).optimize(content);
    
-    const svgo = new SVGO({
+    result = await (new SVGO({
         plugins: [{
             cleanupAttrs: true,
         }, {
@@ -142,34 +141,11 @@ async function svgo({content, title}) {
                 }
             }
         }]
-    });
-    result = await svgo.optimize(result.data);
+    })).optimize(result.data);
 
-    if (title) {
-	const svgo2 = new SVGO({
-	    full: true,
-	    plugins: [{
-		insertTitle: {
-		    type: 'full',
-		    fn: function(data) {
-			const root = data.content[0];
-			const addHelpers = makeHelpers(root);
-			root.content = [addHelpers({
-			    elem: 'title',
-			    prefix: '',
-			    local: 'title',
-			    content: [addHelpers({text: title})]
-			})].concat(root.content);
-			return data;
-		    }
-		}
-	    }]
-	});
-	result = await svgo2.optimize(result.data);
-    }
 
     if (rootStyle) {
-	const svgo3 = new SVGO({
+	result = await (new SVGO({
 	    full: true,
 	    plugins: [{
 		addRootStyle: {
@@ -188,8 +164,29 @@ async function svgo({content, title}) {
 		    }
 		}
 	    }]
-	});
-	result = await svgo3.optimize(result.data);
+	})).optimize(result.data);
+    }
+
+    if (title) {
+	result = await (new SVGO({
+	    full: true,
+	    plugins: [{
+		insertTitle: {
+		    type: 'full',
+		    fn: function(data) {
+			const root = data.content[0];
+			const addHelpers = makeHelpers(root);
+			root.content = [addHelpers({
+			    elem: 'title',
+			    prefix: '',
+			    local: 'title',
+			    content: [addHelpers({text: `${title} logo`})]
+			})].concat(root.content);
+			return data;
+		    }
+		}
+	    }]
+	})).optimize(result.data);
     }
     return result.data;
 }
