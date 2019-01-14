@@ -5,10 +5,56 @@ const SVGO = require('svgo');
 
 const maxSize = 16000; //original SVG files should be up to this size
 
+const makeHelpers = function(root) {
+    return function(x) {
+	x.isElem = root.isElem.bind(x);
+	x.isEmpty = root.isEmpty.bind(x);
+	x.hasAttr = root.hasAttr.bind(x);
+	x.attr = root.attr.bind(x);
+	x.eachAttr = root.eachAttr.bind(x);
+	return x;
+    }
+}
+
 async function svgo({content, title}) {
+    let rootStyle = '';
+    let result;
+    const svgo0 = new SVGO({
+        full: true,
+	plugins: [{
+		removeDoctype: true,
+	    },{
+		removeXMLProcInst: true,
+	    },{
+		removeComments: true,
+	    },{
+		removeMetadata: true,
+	    },{
+		removeTitle: true,
+	    },{
+		removeDesc: true,
+	    },{
+	    removeStyleFromRoot: {
+                type: 'full',
+                fn: function(data) {
+                    const root = data.content[0];
+		    const addHelpers = makeHelpers(root);
+		    if (root.attrs && root.attrs.style) {
+		        rootStyle = `svg {${root.attrs.style.value}}`;
+		    }
+		    else if (root.content[0].elem === 'style' && root.content[0].content[0].text.indexOf('svg {' === 0)) {
+		        rootStyle = root.content[0].content[0].text;
+		    }
+                    return data;
+                }
+	    }
+	}]
+    });
+    result = await svgo0.optimize(content);
+   
     const svgo = new SVGO({
         plugins: [{
-            cleanupAttrs: true,
+            cleanupAttrs: false,
         }, {
             inlineStyles: true
         }, {
@@ -97,38 +143,55 @@ async function svgo({content, title}) {
             }
         }]
     });
-    const result = await svgo.optimize(content);
-    if (!title) {
-        return result.data;
+    result = await svgo.optimize(result.data);
+
+    if (title) {
+	const svgo2 = new SVGO({
+	    full: true,
+	    plugins: [{
+		insertTitle: {
+		    type: 'full',
+		    fn: function(data) {
+			const root = data.content[0];
+			const addHelpers = makeHelpers(root);
+			root.content = [addHelpers({
+			    elem: 'title',
+			    prefix: '',
+			    local: 'title',
+			    content: [addHelpers({text: title})]
+			})].concat(root.content);
+			return data;
+		    }
+		}
+	    }]
+	});
+	result = await svgo2.optimize(result.data);
     }
-    const svgo2 = new SVGO({
-        full: true,
-        plugins: [{
-            insertTitle: {
-                type: 'full',
-                fn: function(data) {
-                    const root = data.content[0];
-                    const addHelpers = function(x) {
-                        x.isElem = root.isElem.bind(x);
-                        x.isEmpty = root.isEmpty.bind(x);
-                        x.hasAttr = root.hasAttr.bind(x);
-                        x.attr = root.attr.bind(x);
-                        x.eachAttr = root.eachAttr.bind(x);
-                        return x;
-                    }
-                    root.content = [addHelpers({
-                        elem: 'title',
-                        prefix: '',
-                        local: 'title',
-                        content: [addHelpers({text: title})]
-                    })].concat(root.content);
-                    return data;
-                }
-            }
-        }]
-    });
-    const result2 = await svgo2.optimize(result.data);
-    return result2.data;
+
+    if (rootStyle) {
+	const svgo3 = new SVGO({
+	    full: true,
+	    plugins: [{
+		addRootStyle: {
+		    type: 'full',
+		    fn: function(data) {
+			const root = data.content[0];
+			const addHelpers = makeHelpers(root);
+			const styleElem = addHelpers({
+			    elem: 'style',
+			    prefix: '',
+			    local: 'style',
+			    content: [addHelpers({text:rootStyle})]
+			})
+			root.content = [styleElem].concat(root.content);
+			return data;
+		    }
+		}
+	    }]
+	});
+	result = await svgo3.optimize(result.data);
+    }
+    return result.data;
 }
 
 async function updateViewbox(content, {x, y, width, height}) {
