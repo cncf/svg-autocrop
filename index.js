@@ -1,11 +1,11 @@
 const _  = require('lodash');
 const Jimp = require('jimp');
 const { convert } = require('convert-svg-to-png');
+const SVGO = require('svgo');
 
-const maxSize = 4000; //original SVG files should be up to this size
+const maxSize = 16000; //original SVG files should be up to this size
 
 async function svgo({content, title}) {
-    const SVGO = require('svgo');
     const svgo = new SVGO({
         plugins: [{
             cleanupAttrs: true,
@@ -68,7 +68,7 @@ async function svgo({content, title}) {
         },{
             moveGroupAttrsToElems: true,
         },{
-            collapseGroups: true,
+            collapseGroups: false,
         },{
             removeRasterImages: false,
         },{
@@ -132,14 +132,27 @@ async function svgo({content, title}) {
 }
 
 async function updateViewbox(content, {x, y, width, height}) {
-  const viewBox = (content.match(/viewBox="(.*?)"/) || {})[1];
-  const newValue = `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
-    // console.info(newValue);
-  if (viewBox) {
-    return content.replace(/viewBox="(.*?)"/, `viewBox="${newValue}"`);
-  } else {
-    return content.replace('<svg ', `<svg viewBox="${newValue}" `);
-  }
+    const newValue = `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
+    const svgo = new SVGO({
+        full: true,
+        plugins: [{
+            updateViewbox: {
+                type: 'full',
+                fn: function(data) {
+                    const root = data.content[0];
+                    root.attrs.viewBox = {
+                        name: 'viewBox',
+                        local: 'viewBox',
+                        prefix: '',
+                        value: newValue
+                    };
+                    return data;
+                }
+            }
+        }]
+    });
+    const result = await svgo.optimize(content);
+    return result.data;
 }
 
 async function getCropRegion(image) {
@@ -309,7 +322,7 @@ module.exports = async function autoCropSvg(svg, options) {
   const height = maxSize;
 
   // get a border on a small scale
-  const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.1  });
+  const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.05  });
   if (process.env.DEBUG_SVG) {
       console.info('estimated: ', estimatedViewbox);
   }
