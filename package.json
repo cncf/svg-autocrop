@@ -1,6 +1,6 @@
 {
   "name": "svg-autocrop",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Auto crop svg files and remove extraneous tags and attributes",
   "main": "index.js",
   "scripts": {
