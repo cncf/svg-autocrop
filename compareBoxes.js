@@ -1,3 +1,5 @@
+// compares how much one box matches the other one, from 0 to 1
+// https://stackoverflow.com/questions/25349178/calculating-percentage-of-bounding-box-overlap-for-image-detector-evaluation?answertab=votes#tab-top
 module.exports = function boxMatching(viewport1, viewport2) {
     const bb1 = { x1: viewport1.x, y1: viewport1.y, x2: viewport1.x + viewport1.width, y2: viewport1.y + viewport1.height };
     const bb2 = { x1: viewport2.x, y1: viewport2.y, x2: viewport2.x + viewport2.width, y2: viewport2.y + viewport2.height };

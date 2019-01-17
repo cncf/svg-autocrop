@@ -133,7 +133,7 @@ async function svgo({content, title}) {
                     if (item.elem === 'svg') {
                         const xmlns = item.attrs.xmlns;
                         const xmlnsxlink = item.attrs['xmlns:xlink'];
-                        item.attrs = { xmlns: xmlns};
+                        item.attrs = { xmlns: xmlns, role: {name: 'role', value: 'img', local: 'role', prefix: ''}};
                         if (xmlnsxlink) {
                             item.attrs['xmlns:xlink'] = xmlnsxlink;
                         }
