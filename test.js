@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const compareBoxes = require('./compareBoxes');
 const autoCropSvg  = require('./index');
 const captureMode = !!process.env['CAPTURE'];
 const match = process.env['MATCH'];
@@ -31,7 +32,25 @@ async function main() {
         } else {
             if (convertedSvg) {
                 const outputContent = require('fs').readFileSync(outputFile, 'utf-8');
-                if (convertedSvg !== outputContent) {
+                const separateContentAndViewbox = function(svg) {
+                    const viewBox = svg.match(/viewBox="(.*?)"/)[1];
+                    const otherContent = svg.replace(/viewBox=".*?"/, "");
+                    return {
+                        x: +viewBox.split(' ')[0],
+                        y: +viewBox.split(' ')[1],
+                        width: +viewBox.split(' ')[2],
+                        height: +viewBox.split(' ')[3],
+                        remaining: otherContent
+                    }
+		}
+                const realParts = separateContentAndViewbox(convertedSvg);
+                const expectedParts = separateContentAndViewbox(outputContent);
+
+                const matchingLevel = compareBoxes(realParts, expectedParts);
+                console.info(matchingLevel);
+
+
+                if (realParts.remaining !== expectedParts.remaining || matchingLevel < 0.995) {
                     console.info(`Fixture do not match: ${inputFile}, ${outputFile}`, convertedSvg.substring(0, 1000), outputContent.substring(0, 1000));
                     process.exit(1);
                 } else {

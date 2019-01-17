@@ -1,6 +1,5 @@
 const _  = require('lodash');
 const Jimp = require('jimp');
-const sharp = require('sharp');
 const { convert } = require('convert-svg-to-png');
 const SVGO = require('svgo');
 
@@ -134,7 +133,7 @@ async function svgo({content, title}) {
                     if (item.elem === 'svg') {
                         const xmlns = item.attrs.xmlns;
                         const xmlnsxlink = item.attrs['xmlns:xlink'];
-                        item.attrs = { xmlns: xmlns, role: {name: 'role', value: 'img', local: 'role', prefix: ''}};
+                        item.attrs = { xmlns: xmlns};
                         if (xmlnsxlink) {
                             item.attrs['xmlns:xlink'] = xmlnsxlink;
                         }
@@ -391,7 +390,20 @@ module.exports = async function autoCropSvg(svg, options) {
   //get an svg in that new viewbox
   svg = await updateViewbox(svg, estimatedViewbox);
   // attempt to convert it again if it fails
-  const png = await (sharp(Buffer.from(svg)).png().toBuffer());
+  var counter = 3;
+  async function tryToConvert() {
+    try {
+      return await convert(svg, {scale: 1, width: estimatedViewbox.width, height: estimatedViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+    } catch(ex) {
+      counter -= 1;
+      if (counter <= 0) {
+        return null;
+      }
+      return await tryToConvert();
+    }
+  }
+
+  const png = await tryToConvert();
   if (!png) {
     throw new Error('Not a valid svg');
   }
