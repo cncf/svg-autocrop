@@ -415,6 +415,9 @@ module.exports = async function autoCropSvg(svg, options) {
       else if (maxSize > 125) {
           return 8;
       }
+      else {
+          return 10;
+      }
   })();
   // console.info('using scale: ', scale);
   var counter = 3;
@@ -494,6 +497,7 @@ module.exports = async function autoCropSvg(svg, options) {
   newViewbox.width = newViewbox.width  + 2 * borderX;
   newViewbox.height = newViewbox.height + 2 * borderY;
 
+  // console.info(newViewbox);
   // translate to original coordinats, our estimated svg
   // was saved as a png file starting from (estimatedViewbox.x,estimatedViewbox.y)
   // and having a size (estimatedViewbox.width, estimatedViewbox.height)
