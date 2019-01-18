@@ -390,10 +390,37 @@ module.exports = async function autoCropSvg(svg, options) {
   //get an svg in that new viewbox
   svg = await updateViewbox(svg, estimatedViewbox);
   // attempt to convert it again if it fails
+  // estimated viewBox has a size which is dividable by 20,
+  //  because previewScale is 0.05 (x1/20)
+  const scale = (function() {
+      const maxSize = Math.max(estimatedViewbox.width, estimatedViewbox.height);
+      if (maxSize > 8000) {
+          return 0.1;
+      }
+      else if (maxSize > 4000) {
+          return 0.2;
+      }
+      else if (maxSize > 2000) {
+          return 0.4;
+      }
+      else if (maxSize > 1000) {
+          return 1;
+      }
+      else if (maxSize > 500) {
+          return 2;
+      }
+      else if (maxSize > 250) {
+          return 4;
+      }
+      else if (maxSize > 125) {
+          return 8;
+      }
+  })();
+  // console.info('using scale: ', scale);
   var counter = 3;
   async function tryToConvert() {
     try {
-      return await convert(svg, {scale: 1, width: estimatedViewbox.width, height: estimatedViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+      return await convert(svg, {scale: scale, width: estimatedViewbox.width, height: estimatedViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
     } catch(ex) {
       counter -= 1;
       if (counter <= 0) {
@@ -470,8 +497,10 @@ module.exports = async function autoCropSvg(svg, options) {
   // translate to original coordinats, our estimated svg
   // was saved as a png file starting from (estimatedViewbox.x,estimatedViewbox.y)
   // and having a size (estimatedViewbox.width, estimatedViewbox.height)
-  newViewbox.x = newViewbox.x + estimatedViewbox.x;
-  newViewbox.y = newViewbox.y + estimatedViewbox.y;
+  newViewbox.x = newViewbox.x / scale + estimatedViewbox.x;
+  newViewbox.y = newViewbox.y / scale + estimatedViewbox.y;
+  newViewbox.width = newViewbox.width / scale;
+  newViewbox.height = newViewbox.height / scale;
   // console.info(newViewbox);
   // apply a new viewbox to the svg
   const newSvg = await updateViewbox(svg, newViewbox);
