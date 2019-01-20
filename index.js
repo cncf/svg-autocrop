@@ -143,7 +143,6 @@ async function svgo({content, title}) {
         }]
     })).optimize(result.data);
 
-
     if (rootStyle) {
 	result = await (new SVGO({
 	    full: true,
@@ -188,6 +187,16 @@ async function svgo({content, title}) {
 	    }]
 	})).optimize(result.data);
     }
+    return result.data;
+}
+
+async function extraTransform(svg) {
+    result = await (new SVGO({
+        full: true,
+	plugins: [{
+            collapseGroups: true,
+        }]
+    })).optimize(svg);
     return result.data;
 }
 
@@ -520,6 +529,20 @@ module.exports = async function autoCropSvg(svg, options) {
       throw new Error('SVG file has a <tspan> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
   }
 
-  return newSvg;
+  // try extra transformations
+  const originalPng = await convert(newSvg, {scale: 1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+
+  const transformedSvg = await extraTransform(newSvg);
+
+  const modifiedPng = await convert(transformedSvg, {scale: 1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+
+  if (originalPng.equals(modifiedPng)) {
+      // console.info('same!');
+      return transformedSvg;
+  } else {
+      // console.info('different!');
+      return newSvg;
+  }
+
 }
 
