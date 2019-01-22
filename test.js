@@ -17,7 +17,7 @@ async function main() {
         let errorMessage;
         console.info(`Processing: ${inputFile}`);
         try {
-            convertedSvg = await autoCropSvg(inputContent, {title: file});
+            convertedSvg = await autoCropSvg(inputContent, {title: `${file} logo`});
         } catch (ex) {
             const message = ex.message || ex;
             errorMessage = message;

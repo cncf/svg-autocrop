@@ -179,7 +179,7 @@ async function svgo({content, title}) {
 			    elem: 'title',
 			    prefix: '',
 			    local: 'title',
-			    content: [addHelpers({text: `${title} logo`})]
+			    content: [addHelpers({text: title})]
 			})].concat(root.content);
 			return data;
 		    }
