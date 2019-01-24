@@ -377,18 +377,27 @@ const compareImages = function(jimp1, jimp2) {
     if (jimp1.bitmap.width !== jimp2.bitmap.width) return false;
     if (jimp1.bitmap.height !== jimp2.bitmap.height) return false;
     let index = 0;
+    let diffBytes = 0;
+    let maxDiff = 0;
     for (y = 0; y < jimp1.bitmap.height; y ++ ) {
         for (x = 0; x < jimp1.bitmap.width; x++) {
             for (i = 0; i < 4; i ++) {
                 if (jimp1.bitmap.data[index] !== jimp2.bitmap.data[index]) {
-                    return false;
+                    // console.info(x,y,i, jimp1.bitmap.data[index],  jimp2.bitmap.data[index]);
+                    diffBytes += 1;
+                    maxDiff = Math.max(maxDiff, Math.abs(jimp1.bitmap.data[index] - jimp2.bitmap.data[index]))
                 }
                 index += 1;
             }
         }
     }
-    return true;
+    // console.info(diffBytes, maxDiff);
+    return diffBytes === 0;
 }
+
+// var sha = function(input){
+    // return require('crypto').createHash('sha1').update(JSON.stringify(input)).digest('hex')
+// }
 
 module.exports = async function autoCropSvg(svg, options) {
   options = options || {};
@@ -547,20 +556,26 @@ module.exports = async function autoCropSvg(svg, options) {
   }
 
   // try extra transformations
-  const originalPng = await convert(newSvg, {scale: 1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+  const originalPng = await convert(newSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
   const originalJimp = await Jimp.read(originalPng);
 
   const transformedSvg = await extraTransform(newSvg);
 
-  const modifiedPng = await convert(transformedSvg, {scale: 1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
-  const modifiedJimp = await Jimp.read(modifiedPng);
-
-
-  if (compareImages(originalJimp, modifiedJimp)) {
-      // console.info('same!');
+  async function tryToCompare() {
+      for ( i = 0; i < 5; i++ ) {
+          const modifiedPng = await convert(transformedSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+          const modifiedJimp = await Jimp.read(modifiedPng);
+          if (compareImages(originalJimp, modifiedJimp)) {
+              return true;
+          }
+      }
+      return false;
+  }
+  if (await tryToCompare()) {
+      // console.info('same');
       return transformedSvg;
   } else {
-      // console.info('different!');
+      // console.info('different');
       return newSvg;
   }
 

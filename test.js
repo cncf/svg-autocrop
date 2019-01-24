@@ -19,6 +19,7 @@ async function main() {
         try {
             convertedSvg = await autoCropSvg(inputContent, {title: `${file} logo`});
         } catch (ex) {
+            console.info(ex);
             const message = ex.message || ex;
             errorMessage = message;
         }
@@ -51,7 +52,13 @@ async function main() {
 
 
                 if (realParts.remaining !== expectedParts.remaining || matchingLevel < 0.995) {
-                    console.info(`Fixture do not match: ${inputFile}, ${outputFile}`, convertedSvg.substring(0, 1000), outputContent.substring(0, 1000));
+                    const beautify = require('xml-beautifier');
+                    console.info(`Fixture do not match: ${inputFile}, ${outputFile}`);
+                    const pd = require('prettydiff');
+                    const options = pd.defaults;
+                    options.source = beautify(realParts.remaining);
+                    options.diff = beautify(expectedParts.remaining);
+                    console.info(pd.mode(options));
                     process.exit(1);
                 } else {
                     console.info('Match');

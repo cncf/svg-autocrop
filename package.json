@@ -32,7 +32,9 @@
     "convert-svg-to-png": "0.5.0",
     "jimp": "0.6.0",
     "lodash": "^4.17.11",
-    "svgo": "^1.1.1"
+    "prettydiff": "^100.1.7",
+    "svgo": "^1.1.1",
+    "xml-beautifier": "^0.4.0"
   },
   "devDependencies": {
     "nyc": "^13.1.0"
