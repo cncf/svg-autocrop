@@ -2,11 +2,11 @@ const _ = require('lodash');
 const autoCropSvg  = require('./index');
 
 async function main() {
-    const files = require('fs').readdirSync('images');
+    const files = require('fs').readdirSync('input');
     const inputFiles = files.filter( (x) => x.indexOf('.processed.') === -1 && x.indexOf('.svg') !== -1);
     for (var file of inputFiles) {
-        const inputFile = `./images/${file}`;
-        const outputFile = `./images/${file.replace('.svg','.processed.svg')}`;
+        const inputFile = `./input/${file}`;
+        const outputFile = `./output/${file}`;
         const inputContent = require('fs').readFileSync(inputFile, 'utf-8');
         try {
             const convertedSvg = await autoCropSvg(inputContent);
