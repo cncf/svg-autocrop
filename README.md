@@ -35,21 +35,28 @@ For more information on recommended rules for collecting logos, please see the [
 
 svg-autocrop has been developed by [Andrey Kozlov](https://github.com/ZeusTheTrueGod) and [Dan Kohn](https://www.dankohn.com) of [CNCF](https://www.cncf.io).
 
-## Quick Start
+## Quick Start for batch processing
+1. Ensure that you have nodejs installed. https://nodejs.org/en/download/
 
-1. Install with:
+2. Ensure you have yarn installed. `brew install yarn`, for example
+
+3. Clone this repo: `git clone https://github.com/cncf/svg-autocrop`
+
+
+4. Go to the local folder where you've checked out the repo and install its dependencies with:
 
     ```bash
     yarn
     ```
 
-2. `mkdir` and add SVGs to `./images`.
+5. put all your SVG images to the `input` folder
 
-3. Run with:
+6. Run with:
 
     ```bash
     node fix
     ```
+    
 ## Debugging the project
 * yarn test will run a full check on all the images in the fixture folder
 * CAPTURE=1 yarn test will run an svg-autocrop on all images in the fixture
