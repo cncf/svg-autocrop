@@ -2,7 +2,7 @@
 
 # svg-autocrop
 
-This NPM module transforms SVGs to have a consistent (and small) border on each side
+This NPM module optimizes SVGs to have a consistent (and small) border on each side
 and to remove extraneous tags and attributes, so that the resulting files are as small
 as possible. The code has been tested and refined on hundreds of real world SVGs so as
 to produce reliable results without distortions or to fail with a clear error if there
@@ -20,7 +20,7 @@ non-transparent pixels
 a different ratio
 * Uses aggressive settings of [svgo](https://github.com/svg/svgo) to remove a large
 amount of useless or redundant information and runs 5 times to eliminate pointless nested groups
-* Standardizes the XML and SVG header to the minimum necessary to reliably render
+* Standardizes the SVG header to the minimum necessary to reliably render
 * Fails with an error if the SVG includes a raster image (such as a PNG or JPEG), as
 these do not scale seamlessly and needlessly add to the file size
 * Fails with an error on SVGs that contain a `<text>` or `<tspan>` element since the
@@ -29,33 +29,33 @@ can [convert](https://github.com/cncf/landscape#proper-svgs) the text to an imag
 it will reliably render anywhere)
 * Optionally adds a title since that is displayed as the title in the browser tab
 
-svg-autocrop expects a transparent or a white background.
+svg-autocrop requires a transparent or a white background to work correctly.
 
 For more information on recommended rules for collecting logos, please see the [guidelines](https://github.com/cncf/landscape#logos) for the [CNCF Cloud Native Landscape](https://landscape.cncf.io).
 
 svg-autocrop has been developed by [Andrey Kozlov](https://github.com/ZeusTheTrueGod) and [Dan Kohn](https://www.dankohn.com) of [CNCF](https://www.cncf.io).
 
-## Quick Start for batch processing
-1. Ensure that you have nodejs installed. https://nodejs.org/en/download/
+## Manually Optimizing SVGs
 
-2. Ensure you have yarn installed. `brew install yarn`, for example
+These directions will let you manually optimize SVGs on a Mac:
 
-3. Clone this repo: `git clone https://github.com/cncf/svg-autocrop`
+*Install (do these once)*
+1. Type Cmd-space, enter `terminal` and hit return to open.
+1. Type `cd Documents; mkdir svg; cd svg; mkdir input` to create an `svg` folder in your Documents folder and go there and create an input folder inside of it
+1. Enter: `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` to install [Homebrew](https://brew.sh/)
+1. Enter: `brew install yarn` to install `yarn` and `node`
+1. Enter: `yarn add svg-autocrop`
+1. `npm link`??? See https://x-team.com/blog/a-guide-to-creating-a-nodejs-command/
 
+*Process SVGs*
+1. In Finder, go to `Documents`:`svg`:`input` and drag in one or more SVGs that you want to optimize.
+1. If terminal is not already running, type Cmd-space, enter `terminal` and hit return to open
+1. Type `cd ~/Documents/svg` to go to the proper directory
+1. Type `node fix`
+1. If no errors print out, you should see the optimized SVGs in an `output` folder
 
-4. Go to the local folder where you've checked out the repo and install its dependencies with:
-
-    ```bash
-    yarn
-    ```
-
-5. put all your SVG images to the `input` folder
-
-6. Run with:
-
-    ```bash
-    node fix
-    ```
+*Update*
+1. Every month or so, you should update the package: `yarn upgrade`
     
 ## Debugging the project
 * yarn test will run a full check on all the images in the fixture folder
