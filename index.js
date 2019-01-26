@@ -128,7 +128,7 @@ async function svgo({content, title}) {
             removeScriptElements: true
         }, {
             removeAttrs: {
-                attrs: ['font.*', '-inkspace.*', 'line.*', 'font', 'letter.*', 'word.*', 'direction', 'white.*']
+                attrs: ['aria.*', 'font.*', '-inkspace.*', 'line.*', 'font', 'letter.*', 'word.*', 'direction', 'white.*']
             }
         }, {
             removeTextStyles: {
