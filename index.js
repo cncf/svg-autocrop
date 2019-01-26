@@ -127,6 +127,51 @@ async function svgo({content, title}) {
         }, {
             removeScriptElements: true
         }, {
+            removeAttrs: {
+                attrs: ['font.*', '-inkspace.*', 'line.*', 'font', 'letter.*', 'word.*', 'direction', 'white.*']
+            }
+        }, {
+            removeTextStyles: {
+                type: 'perItem',
+                fn: function(item) {
+                    if (item.hasAttr('style')) {
+                        var elemStyle = item.attr('style').value;
+                        const elemParts = elemStyle.split(';').map( (x) => x.trim());
+                        const goodParts = elemParts.filter(function(part) {
+                            const [name, value] = part.split(':').map( (x) => x.trim());
+                            // console.info('Propery:',name);
+                            if (name.indexOf('-inkscape') === 0 ) {
+                                return false;
+                            }
+                            if (name.indexOf('line-') === 0) {
+                                return false;
+                            }
+                            if (name.indexOf('font') === 0) {
+                                return false;
+                            }
+                            if (name.indexOf('letter') === 0) {
+                                return false;
+                            }
+                            if (name.indexOf('word') === 0) {
+                                return false;
+                            }
+                            if (name.indexOf('direction') === 0) {
+                                return false;
+                            }
+                            if (name.indexOf('white') === 0) {
+                                return false;
+                            }
+                            return true;
+                        });
+                        if (goodParts.length > 0) {
+                            item.attr('style').value = goodParts.join(';');
+                        } else {
+                            item.removeAttr('style');
+                        }
+                    }
+                }
+            }
+        }, {
             cleanupSvgDeclaration: {
                 type: 'perItem',
                 fn: function(item) {
