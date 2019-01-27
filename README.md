@@ -41,17 +41,14 @@ These directions will let you manually optimize SVGs on a Mac:
 
 *Install (do these once)*
 1. Type Cmd-space, enter `terminal` and hit return to open.
-1. Type `cd Documents; mkdir svg; cd svg; mkdir input` to create an `svg` folder in your Documents folder and go there and create an input folder inside of it
-1. Enter: `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` to install [Homebrew](https://brew.sh/)
-1. Enter: `brew install yarn` to install `yarn` and `node`
-1. Enter: `yarn add svg-autocrop`
-1. `npm link`??? See https://x-team.com/blog/a-guide-to-creating-a-nodejs-command/
+1. Type `cd Documents; mkdir -p svg/input; mkdir -p svg/output` to create an `svg` folder in your Documents folder and go there and create input and output folders inside of it
+1. Enter: `npm install -g svg-autocrop` to install the latest version of the svg-autocrop command. if you get a message like `npm: commant not found`, then you need to install the latest nodejs from https://nodejs.org/en/download/ first and repeat this step.
 
 *Process SVGs*
 1. In Finder, go to `Documents`:`svg`:`input` and drag in one or more SVGs that you want to optimize.
 1. If terminal is not already running, type Cmd-space, enter `terminal` and hit return to open
 1. Type `cd ~/Documents/svg` to go to the proper directory
-1. Type `node fix`
+1. Type `svg-autocrop`
 1. If no errors print out, you should see the optimized SVGs in an `output` folder
 
 *Update*
