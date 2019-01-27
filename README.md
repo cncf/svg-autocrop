@@ -40,9 +40,11 @@ svg-autocrop has been developed by [Andrey Kozlov](https://github.com/ZeusTheTru
 These directions will let you manually optimize SVGs on a Mac:
 
 *Install (do these once)*
-1. Type Cmd-space, enter `terminal` and hit return to open.
-1. Type `cd Documents; mkdir -p svg/input; mkdir -p svg/output` to create an `svg` folder in your Documents folder and go there and create input and output folders inside of it
-1. Enter: `npm install -g svg-autocrop` to install the latest version of the svg-autocrop command. if you get a message like `npm: commant not found`, then you need to install the latest nodejs from https://nodejs.org/en/download/ first and repeat this step.
+1. Type Cmd-space, enter `terminal` and hit return to open. For each of the commands below, it's easiest to copy and paste from here into the terminal window.
+1. Enter: `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"` to install [Homebrew](https://brew.sh/)
+1. Enter: `brew install node`
+1. Type `cd ~/Documents; mkdir -p svg/input; mkdir -p svg/output; open ~/Documents/svg` to create an `svg` folder in your Documents folder with input and output folders inside it
+1. Enter: `npm install -g svg-autocrop` to install the latest version of the svg-autocrop command
 
 *Process SVGs*
 1. In Finder, go to `Documents`:`svg`:`input` and drag in one or more SVGs that you want to optimize.
@@ -50,9 +52,10 @@ These directions will let you manually optimize SVGs on a Mac:
 1. Type `cd ~/Documents/svg` to go to the proper directory
 1. Type `svg-autocrop`
 1. If no errors print out, you should see the optimized SVGs in an `output` folder
+1. Double-click on each SVG so that it opens in Chrome. Manually veryify that the SVG does not look any different (except cropped)
 
 *Update*
-1. Every month or so, you should update the package: `yarn upgrade`
+1. Every month or so, you should update the software: `brew update && brew upgrade && npm update -g`
     
 ## Debugging the project
 * yarn test will run a full check on all the images in the fixture folder
