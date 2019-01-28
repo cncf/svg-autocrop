@@ -52,7 +52,7 @@ These directions will let you manually optimize SVGs on a Mac:
 1. Type `cd ~/Documents/svg` to go to the proper directory
 1. Type `svg-autocrop`
 1. If no errors print out, you should see the optimized SVGs in an `output` folder
-1. Double-click on each SVG so that it opens in Chrome. Manually veryify that the SVG does not look any different (except cropped)
+1. Double-click on each SVG so that it opens in Chrome. Manually verify that the SVG does not look any different (except cropped)
 
 *Update*
 1. Every month or so, you should update the software: `brew update && brew upgrade && npm update -g`
