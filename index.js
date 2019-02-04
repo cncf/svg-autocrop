@@ -357,11 +357,10 @@ async function getEstimatedViewbox({svg, scale}) {
   var counter = 3;
   async function tryToConvert() {
     try {
-      return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+      return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--disable-dev-shm-usage']}});
     } catch(ex) {
       counter -= 1;
       if (counter <= 0) {
-        console.info(ex.message);
         return null;
       }
       return await tryToConvert();
