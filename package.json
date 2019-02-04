@@ -7,7 +7,8 @@
     "test": "nyc --include=index.js --reporter=text --reporter=html node test.js",
     "fix": "node fix.js",
     "capture": "CAPTURE=1 node test.js",
-    "one-image": "CAPTURE=1 MATCH=kubernetes node test.js"
+    "one-image": "CAPTURE=1 MATCH=kubernetes node test.js",
+    "latest": "npm install"
   },
   "repository": {
     "type": "git",

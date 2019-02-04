@@ -58,13 +58,13 @@ These directions will let you manually optimize SVGs on a Mac:
 1. Every month or so, you should update the software: `brew update && brew upgrade && npm update -g`
     
 ## Debugging the project
-* yarn test will run a full check on all the images in the fixture folder
-* CAPTURE=1 yarn test will run an svg-autocrop on all images in the fixture
+* npm test will run a full check on all the images in the fixture folder
+* CAPTURE=1 npm test will run an svg-autocrop on all images in the fixture
 folder and then save results
-* MATCH=kubernetes yarn test will run a check only on files matching kubernetes in the
-* CAPTURE=1 MATCH=kubernetes yarn test will run an svg-autocrop only on files matching kubernetes in the
+* MATCH=kubernetes npm test will run a check only on files matching kubernetes in the
+* CAPTURE=1 MATCH=kubernetes npm test will run an svg-autocrop only on files matching kubernetes in the
 fixture folder
-* yarn fix will convert svg images in the `images` folder
+* npm fix will convert svg images in the `images` folder
 
 
 ## Vulnerability reporting
