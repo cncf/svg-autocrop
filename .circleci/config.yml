@@ -12,17 +12,14 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
       - run:
-          name: install yarn
-          command: yarn install
-      - run:
           name: Install Dependencies
-          command: yarn install --frozen-lockfile
+          command: npm ci
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
           name: run tests
-          command: yarn test
+          command: npm test
       - store_artifacts:
           path: ~/cncf/coverage
