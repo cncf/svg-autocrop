@@ -359,6 +359,7 @@ async function getEstimatedViewbox({svg, scale}) {
     try {
       return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--disable-dev-shm-usage']}});
     } catch(ex) {
+      console.info('ex');
       counter -= 1;
       if (counter <= 0) {
         return null;
