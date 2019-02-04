@@ -361,6 +361,7 @@ async function getEstimatedViewbox({svg, scale}) {
     } catch(ex) {
       counter -= 1;
       if (counter <= 0) {
+        console.info(ex.message);
         return null;
       }
       return await tryToConvert();
