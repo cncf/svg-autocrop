@@ -39,7 +39,7 @@
     "npm-force-resolutions": "0.0.2",
     "prettydiff": "^100.1.7",
     "svgo": "^1.1.1",
-    "puppeteer": "1.9.0",
+    "puppeteer": "1.12.2",
     "xml-beautifier": "^0.4.0"
   },
   "devDependencies": {
