@@ -13,7 +13,7 @@ jobs:
           - v1-dependencies-
       - run:
           name: Install Dependencies
-          command: npm ci && rm -r node_modules && npx npm-force-resolutions && npm install
+          command: npm ci # && rm -r node_modules && npx npm-force-resolutions && npm install
       - save_cache:
           paths:
             - node_modules
