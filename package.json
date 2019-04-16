@@ -42,7 +42,7 @@
     "xml-beautifier": "^0.4.0"
   },
   "devDependencies": {
-    "nyc": "^13.3.0"
+    "nyc": "^14.0.0"
   },
   "resolutions": {
     "puppeteer": "1.9.0"
