@@ -37,7 +37,7 @@
     "jimp": "0.6.0",
     "lodash": "^4.17.11",
     "npm-force-resolutions": "0.0.2",
-    "prettydiff": "^100.2.6",
+    "prettydiff": "^101.0.0",
     "puppeteer": "^1.13.0",
     "svgo": "^1.2.0",
     "xml-beautifier": "^0.4.0"
