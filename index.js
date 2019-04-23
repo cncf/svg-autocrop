@@ -408,6 +408,37 @@ async function getEstimatedViewbox({svg, scale}) {
   }
 
   const newViewbox = await getCropRegion(image);
+
+  // check that the region is not with white border and non transparent
+    var totalBorderPixels = 0;
+    var whiteBorderPixels = 0;
+    var totalPixelsInside = 0;
+    var transparentPixelsInside = 0;
+    for (let x = newViewbox.x; x <= newViewbox.x + newViewbox.width; x += 1) {
+        for (let y = newViewbox.y; y <= newViewbox.y + newViewbox.height; y += 1) {
+            const r = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 0];
+            const g = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 1];
+            const b = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 2];
+            const a = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 3];
+            const isBorderPixel = x === newViewbox.x || x === newViewbox.x + newViewbox.width || y === newViewbox.y || y === newViewbox.y + newViewbox.height;
+            const isWhiteBorderPixel = (isBorderPixel && r >= 240 && g >= 240 && b >= 240);
+            const isTransparentPixel = a === 0;
+            if (isBorderPixel) {
+                totalBorderPixels += 1;
+            }
+            if (isWhiteBorderPixel) {
+                whiteBorderPixels += 1
+            }
+            totalPixelsInside += 1;
+            if (isTransparentPixel) {
+                transparentPixelsInside += 1;
+            }
+        }
+    }
+    console.info({totalBorderPixels,whiteBorderPixels, totalPixelsInside, transparentPixelsInside});
+  // if more than 99% of border pixels are white. And more than 99% of pixels
+    // are not transparent - that is our case, when we should treat white color
+    // as a transparent
  
   const border = 2 / scale;
   // translate to original coordinats
@@ -532,22 +563,22 @@ module.exports = async function autoCropSvg(svg, options) {
   }
 
   // If anything is completely white - make it black and transparent
-  await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
-    // x, y is the position of this pixel on the image
-    // idx is the position start position of this rgba tuple in the bitmap Buffer
-    // this is the image
+  // await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+    // // x, y is the position of this pixel on the image
+    // // idx is the position start position of this rgba tuple in the bitmap Buffer
+    // // this is the image
 
-    var red   = this.bitmap.data[ idx + 0 ];
-    var green = this.bitmap.data[ idx + 1 ];
-    var blue  = this.bitmap.data[ idx + 2 ];
+    // var red   = this.bitmap.data[ idx + 0 ];
+    // var green = this.bitmap.data[ idx + 1 ];
+    // var blue  = this.bitmap.data[ idx + 2 ];
 
-    if (red > 230 && green > 230 && blue > 230) {
-      this.bitmap.data[idx + 0] = 0;
-      this.bitmap.data[idx + 1] = 0;
-      this.bitmap.data[idx + 2] = 0;
-      this.bitmap.data[idx + 3] = 0;
-    }
-  });
+    // if (red > 230 && green > 230 && blue > 230) {
+      // this.bitmap.data[idx + 0] = 0;
+      // this.bitmap.data[idx + 1] = 0;
+      // this.bitmap.data[idx + 2] = 0;
+      // this.bitmap.data[idx + 3] = 0;
+    // }
+  // });
 
   if (process.env.DEBUG_SVG) {
     await save('/tmp/r2.png');
