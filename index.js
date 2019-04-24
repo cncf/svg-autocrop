@@ -269,6 +269,50 @@ async function updateViewbox(content, {x, y, width, height}) {
     return result.data;
 }
 
+async function getCropRegionWithWhiteBackgroundDetection(image) {
+    const newViewbox = await getCropRegion(image);
+
+    let totalBorderPixels = 0;
+    let whiteBorderPixels = 0;
+    let totalPixelsInside = 0;
+    let transparentPixelsInside = 0;
+    console.info(newViewbox);
+    for (let x = newViewbox.x; x <= newViewbox.x + newViewbox.width; x += 1) {
+        for (let y = newViewbox.y; y <= newViewbox.y + newViewbox.height; y += 1) {
+            const r = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 0];
+            const g = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 1];
+            const b = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 2];
+            const a = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 3];
+            const isBorderPixel = x === newViewbox.x || x === newViewbox.x + newViewbox.width || y === newViewbox.y || y === newViewbox.y + newViewbox.height;
+            const isWhiteBorderPixel = (isBorderPixel && r >= 240 && g >= 240 && b >= 240);
+            const isTransparentPixel = a === 0;
+            if (isBorderPixel) {
+                totalBorderPixels += 1;
+            }
+            if (isWhiteBorderPixel) {
+                whiteBorderPixels += 1
+            }
+            totalPixelsInside += 1;
+            if (isTransparentPixel) {
+                transparentPixelsInside += 1;
+            }
+        }
+    }
+    var borderRatio = totalBorderPixels ? whiteBorderPixels / totalBorderPixels : 0;
+    var transparentRatio = totalPixelsInside ? transparentPixelsInside / totalPixelsInside : 0;
+
+    console.info(borderRatio, transparentRatio);
+    if (borderRatio > 0.99 && transparentRatio < 0.01) {
+        console.info('Converting image to transparent');
+        await whiteToTransparent(image);
+        const result =  await getCropRegion(image);
+        console.info('Diff in results: ', newViewbox, result);
+        return result;
+    } else {
+        return newViewbox;
+    }
+}
+
 async function getCropRegion(image) {
     let top, left, right, bottom;
     // pixels go in pack of 4 bytes in the R G B A order
@@ -385,61 +429,13 @@ async function getEstimatedViewbox({svg, scale}) {
       await save('/tmp/r01.png');
   }
 
-  // If anything is completely white - make it black and transparent
-  await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
-    // x, y is the position of this pixel on the image
-    // idx is the position start position of this rgba tuple in the bitmap Buffer
-    // this is the image
-
-    var red   = this.bitmap.data[ idx + 0 ];
-    var green = this.bitmap.data[ idx + 1 ];
-    var blue  = this.bitmap.data[ idx + 2 ];
-
-    if (red > 230 && green > 230 && blue > 230) {
-      this.bitmap.data[idx + 0] = 0;
-      this.bitmap.data[idx + 1] = 0;
-      this.bitmap.data[idx + 2] = 0;
-      this.bitmap.data[idx + 3] = 0;
-    }
-  });
 
   if (process.env.DEBUG_SVG) {
     await save('/tmp/r02.png');
   }
 
-  const newViewbox = await getCropRegion(image);
+  const newViewbox = await getCropRegionWithWhiteBackgroundDetection(image);
 
-  // check that the region is not with white border and non transparent
-    var totalBorderPixels = 0;
-    var whiteBorderPixels = 0;
-    var totalPixelsInside = 0;
-    var transparentPixelsInside = 0;
-    for (let x = newViewbox.x; x <= newViewbox.x + newViewbox.width; x += 1) {
-        for (let y = newViewbox.y; y <= newViewbox.y + newViewbox.height; y += 1) {
-            const r = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 0];
-            const g = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 1];
-            const b = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 2];
-            const a = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 3];
-            const isBorderPixel = x === newViewbox.x || x === newViewbox.x + newViewbox.width || y === newViewbox.y || y === newViewbox.y + newViewbox.height;
-            const isWhiteBorderPixel = (isBorderPixel && r >= 240 && g >= 240 && b >= 240);
-            const isTransparentPixel = a === 0;
-            if (isBorderPixel) {
-                totalBorderPixels += 1;
-            }
-            if (isWhiteBorderPixel) {
-                whiteBorderPixels += 1
-            }
-            totalPixelsInside += 1;
-            if (isTransparentPixel) {
-                transparentPixelsInside += 1;
-            }
-        }
-    }
-    console.info({totalBorderPixels,whiteBorderPixels, totalPixelsInside, transparentPixelsInside});
-  // if more than 99% of border pixels are white. And more than 99% of pixels
-    // are not transparent - that is our case, when we should treat white color
-    // as a transparent
- 
   const border = 2 / scale;
   // translate to original coordinats
   newViewbox.x = newViewbox.x / scale - maxSize - border;
@@ -475,6 +471,26 @@ const compareImages = function(jimp1, jimp2) {
 // var sha = function(input){
     // return require('crypto').createHash('sha1').update(JSON.stringify(input)).digest('hex')
 // }
+
+// If anything is completely white - make it black and transparent
+async function whiteToTransparent(image) {
+    await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+        // x, y is the position of this pixel on the image
+        // idx is the position start position of this rgba tuple in the bitmap Buffer
+        // this is the image
+
+        var red   = this.bitmap.data[ idx + 0 ];
+        var green = this.bitmap.data[ idx + 1 ];
+        var blue  = this.bitmap.data[ idx + 2 ];
+
+        if (red > 240 && green > 240 && blue > 240) {
+            this.bitmap.data[idx + 0] = 0;
+            this.bitmap.data[idx + 1] = 0;
+            this.bitmap.data[idx + 2] = 0;
+            this.bitmap.data[idx + 3] = 0;
+        }
+    });
+}
 
 module.exports = async function autoCropSvg(svg, options) {
   options = options || {};
@@ -586,7 +602,9 @@ module.exports = async function autoCropSvg(svg, options) {
 
 
 
-  const newViewbox = await getCropRegion(image);
+  const newViewbox = await getCropRegionWithWhiteBackgroundDetection(image);
+
+
   if (process.env.DEBUG_SVG) {
     // image.crop(false);
     // await save('/tmp/r3.png');
