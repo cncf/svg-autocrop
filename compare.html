@@ -1,0 +1,17 @@
+<body>
+            <script>
+                const files = ['white-1', 'white-2'];
+                for (file of files) {
+                    const div = document.createElement('div');
+                    document.body.appendChild(div);
+                    div.outerHTML = `
+        <div style="position: relative;" >
+            <img width="400px" height="400px" src="./fixtures/${file}.input.svg"
+            style="border: 1px solid black; background: #ccc"; />
+            <img width="400px" height="400px" src="./fixtures/${file}.output.svg"
+            style="border: 1px solid black; background: #ccc"; />
+        </div>`;
+                }
+            </script>
+</body>
+
