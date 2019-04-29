@@ -7,6 +7,10 @@ const match = process.env['MATCH'];
 async function main() {
     const files = require('fs').readdirSync('fixtures');
     const inputFiles = files.filter( (x) => x.indexOf('input') !== -1).filter( match ? ((x) => x.indexOf(match) !== -1) : (x) => true) ;
+    const inputFileAsJson = JSON.stringify(inputFiles.map( (x) => x.replace('.input.svg', '')));
+    const compareContent = require('fs').readFileSync('./compare.html', 'utf-8');
+    const newContent = compareContent.replace(/const files = (.*)$/m, `const files = ${inputFileAsJson}`);
+    require('fs').writeFileSync('./compare.html', newContent);
     console.info(inputFiles);
     for (var file of inputFiles) {
         const inputFile = `./fixtures/${file}`;
