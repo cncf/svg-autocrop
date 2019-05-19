@@ -26,6 +26,7 @@ function getInputFiles() {
 }
 
 async function main() {
+    const result = [];
     const inputFileOptions = getInputFiles();
     const inputFiles = inputFileOptions.inputFiles;
     const inputFn = inputFileOptions.inputFn;
@@ -38,11 +39,26 @@ async function main() {
             console.info(`Processing ${inputFile} and saving to ${outputFile}`);
             const convertedSvg = await autoCropSvg(inputContent);
             require('fs').writeFileSync(outputFile, convertedSvg);
+            result.push({
+                name: inputFile,
+                input: inputContent,
+                output: convertedSvg
+            });
             console.info(`Processed ${inputFile} and saved to ${outputFile}`);
         } catch(ex) {
             const message = ex.message || ex;
             console.info(`Failed to process ${inputFile}, error is ${message.substring(0, 1000)}`);
+            result.push({
+                name: inputFile,
+                input: inputContent,
+                output: ""
+            });
         }
     }
+
+    const compareContent = require('fs').readFileSync('./compare.html', 'utf-8');
+    const newContent = compareContent.replace(/const files = (.*)$/m, `const files = ${JSON.stringify(result)}`);
+    require('fs').writeFileSync('/tmp/autocrop-compare.html', newContent);
+    console.info('Report has been written to file:///tmp/autocrop-compare.html');
 }
 main().catch(console.info);
