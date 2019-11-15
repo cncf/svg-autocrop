@@ -50,7 +50,7 @@ These directions will let you manually optimize SVGs on a Mac:
 1. In Finder, go to `Documents`:`svg`:`input` and drag in one or more SVGs that you want to optimize.
 1. If terminal is not already running, type Cmd-space, enter `terminal` and hit return to open
 1. Type `cd ~/Documents/svg` to go to the proper directory
-1. Type `svg-autocrop`
+1. Type `npm run fix`
 1. If no errors print out, you should see the optimized SVGs in an `output` folder
 1. Double-click on each SVG so that it opens in Chrome. Manually verify that the SVG does not look any different (except cropped)
 
