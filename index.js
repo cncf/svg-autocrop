@@ -276,6 +276,7 @@ async function getCropRegionWithWhiteBackgroundDetection(image) {
     let whiteBorderPixels = 0;
     let totalPixelsInside = 0;
     let transparentPixelsInside = 0;
+    let nonWhiteOrNonTransparent = 0;
     console.info(newViewbox);
     for (let x = newViewbox.x; x <= newViewbox.x + newViewbox.width; x += 1) {
         for (let y = newViewbox.y; y <= newViewbox.y + newViewbox.height; y += 1) {
@@ -283,8 +284,9 @@ async function getCropRegionWithWhiteBackgroundDetection(image) {
             const g = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 1];
             const b = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 2];
             const a = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 3];
+            console.info({x, y, r, g, b, a});
             const isBorderPixel = x === newViewbox.x || x === newViewbox.x + newViewbox.width || y === newViewbox.y || y === newViewbox.y + newViewbox.height;
-            const isWhiteBorderPixel = (isBorderPixel && r >= 240 && g >= 240 && b >= 240);
+            const isWhiteBorderPixel = (isBorderPixel && r >= 250 && g >= 250 && b >= 250);
             const isTransparentPixel = a === 0;
             if (isBorderPixel) {
                 totalBorderPixels += 1;
@@ -298,6 +300,8 @@ async function getCropRegionWithWhiteBackgroundDetection(image) {
             }
         }
     }
+    console.info({totalBorderPixels, whiteBorderPixels});
+
     var borderRatio = totalBorderPixels ? whiteBorderPixels / totalBorderPixels : 0;
     var transparentRatio = totalPixelsInside ? transparentPixelsInside / totalPixelsInside : 0;
 
@@ -483,7 +487,7 @@ async function whiteToTransparent(image) {
         var green = this.bitmap.data[ idx + 1 ];
         var blue  = this.bitmap.data[ idx + 2 ];
 
-        if (red > 240 && green > 240 && blue > 240) {
+        if (red > 250 && green > 250 && blue > 250) {
             this.bitmap.data[idx + 0] = 0;
             this.bitmap.data[idx + 1] = 0;
             this.bitmap.data[idx + 2] = 0;

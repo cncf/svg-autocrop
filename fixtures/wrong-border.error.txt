@@ -1,0 +1,1 @@
+SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger
