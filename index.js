@@ -269,7 +269,7 @@ async function updateViewbox(content, {x, y, width, height}) {
     return result.data;
 }
 
-async function getCropRegionWithWhiteBackgroundDetection(image) {
+async function getCropRegionWithWhiteBackgroundDetection({image, allowScaling}) {
     const newViewbox = await getCropRegion(image);
 
     let totalBorderPixels = 0;
@@ -284,7 +284,6 @@ async function getCropRegionWithWhiteBackgroundDetection(image) {
             const g = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 1];
             const b = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 2];
             const a = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 3];
-            console.info({x, y, r, g, b, a});
             const isBorderPixel = x === newViewbox.x || x === newViewbox.x + newViewbox.width || y === newViewbox.y || y === newViewbox.y + newViewbox.height;
             const isWhiteBorderPixel = (isBorderPixel && r >= 250 && g >= 250 && b >= 250);
             const isTransparentPixel = a === 0;
@@ -301,6 +300,10 @@ async function getCropRegionWithWhiteBackgroundDetection(image) {
         }
     }
     console.info({totalBorderPixels, whiteBorderPixels});
+    if (totalBorderPixels < 100 && allowScaling) {
+      console.info('Too few border pixels - not poosible to detect a white background');
+      return false;
+    }
 
     var borderRatio = totalBorderPixels ? whiteBorderPixels / totalBorderPixels : 0;
     var transparentRatio = totalPixelsInside ? transparentPixelsInside / totalPixelsInside : 0;
@@ -379,7 +382,7 @@ async function getCropRegion(image) {
             break;
         }
     }
-    if (!left || !top || !right || !bottom) {
+    if (!_.isNumber(left) || !_.isNumber(top) || !_.isNumber(right) || !_.isNumber(bottom)) {
         throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
     }
     // add a 1 pixel border around
@@ -438,7 +441,10 @@ async function getEstimatedViewbox({svg, scale}) {
     await save('/tmp/r02.png');
   }
 
-  const newViewbox = await getCropRegionWithWhiteBackgroundDetection(image);
+  const newViewbox = await getCropRegionWithWhiteBackgroundDetection({image, allowScaling: true});
+  if (newViewbox === false) { // too small size
+    return await getEstimatedViewbox({svg, scale: scale * 4});    
+  }
 
   const border = 2 / scale;
   // translate to original coordinats
@@ -606,7 +612,7 @@ module.exports = async function autoCropSvg(svg, options) {
 
 
 
-  const newViewbox = await getCropRegionWithWhiteBackgroundDetection(image);
+  const newViewbox = await getCropRegionWithWhiteBackgroundDetection({image});
 
 
   if (process.env.DEBUG_SVG) {
