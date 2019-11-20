@@ -52,17 +52,17 @@ async function main() {
                 const expectedParts = separateContentAndViewbox(outputContent);
 
                 const matchingLevel = compareBoxes(realParts, expectedParts);
-                console.info(matchingLevel);
+                console.info({matchingLevel});
 
 
                 if (realParts.remaining !== expectedParts.remaining || matchingLevel < 0.995) {
                     const beautify = require('xml-beautifier');
                     console.info(`Fixture do not match: ${inputFile}, ${outputFile}`);
                     const pd = require('prettydiff');
-                    const options = pd.defaults;
+                    const options = pd.options;
                     options.source = beautify(realParts.remaining);
                     options.diff = beautify(expectedParts.remaining);
-                    console.info(pd.mode(options));
+                    console.info(pd());
                     process.exit(1);
                 } else {
                     console.info('Match');
