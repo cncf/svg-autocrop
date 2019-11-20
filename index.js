@@ -7,12 +7,12 @@ const maxSize = 16000; //original SVG files should be up to this size
 
 const makeHelpers = function(root) {
     return function(x) {
-	x.isElem = root.isElem.bind(x);
-	x.isEmpty = root.isEmpty.bind(x);
-	x.hasAttr = root.hasAttr.bind(x);
-	x.attr = root.attr.bind(x);
-	x.eachAttr = root.eachAttr.bind(x);
-	return x;
+        x.isElem = root.isElem.bind(x);
+        x.isEmpty = root.isEmpty.bind(x);
+        x.hasAttr = root.hasAttr.bind(x);
+        x.attr = root.attr.bind(x);
+        x.eachAttr = root.eachAttr.bind(x);
+        return x;
     }
 }
 
@@ -21,36 +21,36 @@ async function svgo({content, title}) {
     let result;
     result = await (new SVGO({
         full: true,
-	plugins: [{
-		removeDoctype: true,
-	    },{
-		removeXMLProcInst: true,
-	    },{
-		removeComments: true,
-	    },{
-		removeMetadata: true,
-	    },{
-		removeTitle: true,
-	    },{
-		removeDesc: true,
-	    },{
-	    removeStyleFromRoot: {
+        plugins: [{
+            removeDoctype: true,
+        },{
+            removeXMLProcInst: true,
+        },{
+            removeComments: true,
+        },{
+            removeMetadata: true,
+        },{
+            removeTitle: true,
+        },{
+            removeDesc: true,
+        },{
+            removeStyleFromRoot: {
                 type: 'full',
                 fn: function(data) {
                     const root = data.content[0];
-		    const addHelpers = makeHelpers(root);
-		    if (root.attrs && root.attrs.style) {
-		        rootStyle = `svg {${root.attrs.style.value}}`;
-		    }
-		    else if (root.content[0].elem === 'style' && root.content[0].content[0].text.indexOf('svg {' === 0)) {
-		        rootStyle = root.content[0].content[0].text;
-		    }
+                    const addHelpers = makeHelpers(root);
+                    if (root.attrs && root.attrs.style) {
+                        rootStyle = `svg {${root.attrs.style.value}}`;
+                    }
+                    else if (root.content[0].elem === 'style' && root.content[0].content[0].text.indexOf('svg {' === 0)) {
+                        rootStyle = root.content[0].content[0].text;
+                    }
                     return data;
                 }
-	    }
-	}]
+            }
+        }]
     })).optimize(content);
-   
+
     result = await (new SVGO({
         plugins: [{
             cleanupAttrs: true,
@@ -189,48 +189,48 @@ async function svgo({content, title}) {
     })).optimize(result.data);
 
     if (rootStyle) {
-	result = await (new SVGO({
-	    full: true,
-	    plugins: [{
-		addRootStyle: {
-		    type: 'full',
-		    fn: function(data) {
-			const root = data.content[0];
-			const addHelpers = makeHelpers(root);
-			const styleElem = addHelpers({
-			    elem: 'style',
-			    prefix: '',
-			    local: 'style',
-			    content: [addHelpers({text:rootStyle})]
-			})
-			root.content = [styleElem].concat(root.content);
-			return data;
-		    }
-		}
-	    }]
-	})).optimize(result.data);
+        result = await (new SVGO({
+            full: true,
+            plugins: [{
+                addRootStyle: {
+                    type: 'full',
+                    fn: function(data) {
+                        const root = data.content[0];
+                        const addHelpers = makeHelpers(root);
+                        const styleElem = addHelpers({
+                            elem: 'style',
+                            prefix: '',
+                            local: 'style',
+                            content: [addHelpers({text:rootStyle})]
+                        })
+                        root.content = [styleElem].concat(root.content);
+                        return data;
+                    }
+                }
+            }]
+        })).optimize(result.data);
     }
 
     if (title) {
-	result = await (new SVGO({
-	    full: true,
-	    plugins: [{
-		insertTitle: {
-		    type: 'full',
-		    fn: function(data) {
-			const root = data.content[0];
-			const addHelpers = makeHelpers(root);
-			root.content = [addHelpers({
-			    elem: 'title',
-			    prefix: '',
-			    local: 'title',
-			    content: [addHelpers({text: title})]
-			})].concat(root.content);
-			return data;
-		    }
-		}
-	    }]
-	})).optimize(result.data);
+        result = await (new SVGO({
+            full: true,
+            plugins: [{
+                insertTitle: {
+                    type: 'full',
+                    fn: function(data) {
+                        const root = data.content[0];
+                        const addHelpers = makeHelpers(root);
+                        root.content = [addHelpers({
+                            elem: 'title',
+                            prefix: '',
+                            local: 'title',
+                            content: [addHelpers({text: title})]
+                        })].concat(root.content);
+                        return data;
+                    }
+                }
+            }]
+        })).optimize(result.data);
     }
     return result.data;
 }
@@ -238,7 +238,7 @@ async function svgo({content, title}) {
 async function extraTransform(svg) {
     result = await (new SVGO({
         full: true,
-	plugins: [{
+        plugins: [{
             collapseGroups: true,
         }]
     })).optimize(svg);
@@ -269,7 +269,7 @@ async function updateViewbox(content, {x, y, width, height}) {
     return result.data;
 }
 
-async function getCropRegionWithWhiteBackgroundDetection({image, allowScaling}) {
+async function getCropRegionWithWhiteBackgroundDetection({svg, image, allowScaling}) {
     const newViewbox = await getCropRegion(image);
 
     let totalBorderPixels = 0;
@@ -299,10 +299,14 @@ async function getCropRegionWithWhiteBackgroundDetection({image, allowScaling}) 
             }
         }
     }
-    console.info({totalBorderPixels, whiteBorderPixels});
-    if (totalBorderPixels < 100 && allowScaling) {
-      console.info('Too few border pixels - not poosible to detect a white background');
-      return false;
+    console.info({totalBorderPixels, whiteBorderPixels, allowScaling});
+    if (totalBorderPixels < 400 && allowScaling) {
+        console.info('Too few border pixels on estimate - not possible to detect a white background, scaling the image again');
+        return newViewbox;
+    }
+    if (totalBorderPixels < 400 && !allowScaling) {
+        console.info('Too few border pixels on final - not possible to detect a white background, scaling the image again');
+        process.exit(1);
     }
 
     var borderRatio = totalBorderPixels ? whiteBorderPixels / totalBorderPixels : 0;
@@ -396,63 +400,59 @@ async function getCropRegion(image) {
 // is just 400x400 and thus way faster to process
 // the obvious side effect that we have a +- (1 / scale) error
 async function getEstimatedViewbox({svg, scale}) {
-  const svgCopy = svg.toString();
-  svg = await updateViewbox(svgCopy, {
-    x: -maxSize,
-    y: -maxSize,
-    width: 2 * maxSize,
-    height: 2 * maxSize
-  });
-
-  // attempt to convert it again if it fails
-  var counter = 3;
-  async function tryToConvert() {
-    try {
-      return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {dumpio: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--disable-dev-shm-usage']}});
-    } catch(ex) {
-      console.info(ex);
-      counter -= 1;
-      if (counter <= 0) {
-        return null;
-      }
-      return await tryToConvert();
-    }
-  }
-
-  const png = await tryToConvert();
-  if (!png) {
-    throw new Error('Not a valid svg');
-  }
-  const image = await Jimp.read(png);
-  async function save(fileName) {
-    const data = await new Promise(function(resolve) {
-        image.getBuffer('image/png', function(err, data) {
-            resolve(data);
-        }); 
+    const svgCopy = svg.toString();
+    svg = await updateViewbox(svgCopy, {
+        x: -maxSize,
+        y: -maxSize,
+        width: 2 * maxSize,
+        height: 2 * maxSize
     });
-    require('fs').writeFileSync(fileName, data);
-  }
-  if (process.env.DEBUG_SVG) {
-      await save('/tmp/r01.png');
-  }
+
+    // attempt to convert it again if it fails
+    var counter = 3;
+    async function tryToConvert() {
+        try {
+            return await convert(svg, {scale: scale, width: 2 * maxSize,height: 2 * maxSize, puppeteer: {dumpio: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--disable-dev-shm-usage']}});
+        } catch(ex) {
+            console.info(ex);
+            counter -= 1;
+            if (counter <= 0) {
+                return null;
+            }
+            return await tryToConvert();
+        }
+    }
+
+    const png = await tryToConvert();
+    if (!png) {
+        throw new Error('Not a valid svg');
+    }
+    const image = await Jimp.read(png);
+    async function save(fileName) {
+        const data = await new Promise(function(resolve) {
+            image.getBuffer('image/png', function(err, data) {
+                resolve(data);
+            }); 
+        });
+        require('fs').writeFileSync(fileName, data);
+    }
+    if (process.env.DEBUG_SVG) {
+        await save('/tmp/r01.png');
+    }
 
 
-  if (process.env.DEBUG_SVG) {
-    await save('/tmp/r02.png');
-  }
+    const newViewbox = await getCropRegionWithWhiteBackgroundDetection({svg: svgCopy, image, allowScaling: true});
+    if (newViewbox === false) { // too small size
+        return await getEstimatedViewbox({svg, scale: scale * 4});    
+    }
 
-  const newViewbox = await getCropRegionWithWhiteBackgroundDetection({image, allowScaling: true});
-  if (newViewbox === false) { // too small size
-    return await getEstimatedViewbox({svg, scale: scale * 4});    
-  }
-
-  const border = 2 / scale;
-  // translate to original coordinats
-  newViewbox.x = newViewbox.x / scale - maxSize - border;
-  newViewbox.y = newViewbox.y / scale - maxSize - border;
-  newViewbox.width = newViewbox.width / scale + 2 * border;
-  newViewbox.height = newViewbox.height / scale + 2 * border;
-  return newViewbox;
+    const border = 2 / scale;
+    // translate to original coordinats
+    newViewbox.x = newViewbox.x / scale - maxSize - border;
+    newViewbox.y = newViewbox.y / scale - maxSize - border;
+    newViewbox.width = newViewbox.width / scale + 2 * border;
+    newViewbox.height = newViewbox.height / scale + 2 * border;
+    return newViewbox;
 
 }
 
@@ -479,7 +479,7 @@ const compareImages = function(jimp1, jimp2) {
 }
 
 // var sha = function(input){
-    // return require('crypto').createHash('sha1').update(JSON.stringify(input)).digest('hex')
+// return require('crypto').createHash('sha1').update(JSON.stringify(input)).digest('hex')
 // }
 
 // If anything is completely white - make it black and transparent
@@ -503,93 +503,93 @@ async function whiteToTransparent(image) {
 }
 
 module.exports = async function autoCropSvg(svg, options) {
-  options = options || {};
-  svg = svg.toString();
-  // running it up to 5 times helps to reduce amount of nested groups
-  let previousSvg = svg;
-  for (var i = 0; i < 5; i ++) {
-      svg = await svgo({content: svg, title: options.title});
-      if (svg === previousSvg) {
-          break;
-      } else {
-          previousSvg = svg;
-      }
-  }
-  // get a maximum possible viewbox which covers the whole region;
-  const width = maxSize;
-  const height = maxSize;
-
-  // get a border on a small scale
-  const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.05  });
-  if (process.env.DEBUG_SVG) {
-      console.info('estimated: ', estimatedViewbox);
-  }
-
-  //get an svg in that new viewbox
-  svg = await updateViewbox(svg, estimatedViewbox);
-  // attempt to convert it again if it fails
-  // estimated viewBox has a size which is dividable by 20,
-  //  because previewScale is 0.05 (x1/20)
-  const scale = (function() {
-      const maxSize = Math.max(estimatedViewbox.width, estimatedViewbox.height);
-      if (maxSize > 8000) {
-          return 0.1;
-      }
-      else if (maxSize > 4000) {
-          return 0.2;
-      }
-      else if (maxSize > 2000) {
-          return 0.4;
-      }
-      else if (maxSize > 1000) {
-          return 1;
-      }
-      else if (maxSize > 500) {
-          return 2;
-      }
-      else if (maxSize > 250) {
-          return 4;
-      }
-      else if (maxSize > 125) {
-          return 8;
-      }
-      else {
-          return 10;
-      }
-  })();
-  // console.info('using scale: ', scale);
-  var counter = 3;
-  async function tryToConvert() {
-    try {
-      return await convert(svg, {scale: scale, width: estimatedViewbox.width, height: estimatedViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
-    } catch(ex) {
-      counter -= 1;
-      if (counter <= 0) {
-        return null;
-      }
-      return await tryToConvert();
+    options = options || {};
+    svg = svg.toString();
+    // running it up to 5 times helps to reduce amount of nested groups
+    let previousSvg = svg;
+    for (var i = 0; i < 5; i ++) {
+        svg = await svgo({content: svg, title: options.title});
+        if (svg === previousSvg) {
+            break;
+        } else {
+            previousSvg = svg;
+        }
     }
-  }
+    // get a maximum possible viewbox which covers the whole region;
+    const width = maxSize;
+    const height = maxSize;
 
-  const png = await tryToConvert();
-  if (!png) {
-    throw new Error('Not a valid svg');
-  }
-  const image = await Jimp.read(png);
-  async function save(fileName) {
-    const data = await new Promise(function(resolve) {
-        image.getBuffer('image/png', function(err, data) {
-            resolve(data);
-        }); 
-    });
-    require('fs').writeFileSync(fileName, data);
-  }
-  if (process.env.DEBUG_SVG) {
-      await save('/tmp/r1.png');
-  }
+    // get a border on a small scale
+    const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.05  });
+    if (process.env.DEBUG_SVG) {
+        console.info('estimated: ', estimatedViewbox);
+    }
 
-  // If anything is completely white - make it black and transparent
-  // await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+    //get an svg in that new viewbox
+    svg = await updateViewbox(svg, estimatedViewbox);
+    // attempt to convert it again if it fails
+    // estimated viewBox has a size which is dividable by 20,
+    //  because previewScale is 0.05 (x1/20)
+    const scale = (function() {
+        const maxSize = Math.max(estimatedViewbox.width, estimatedViewbox.height);
+        if (maxSize > 8000) {
+            return 0.1;
+        }
+        else if (maxSize > 4000) {
+            return 0.2;
+        }
+        else if (maxSize > 2000) {
+            return 0.4;
+        }
+        else if (maxSize > 1000) {
+            return 1;
+        }
+        else if (maxSize > 500) {
+            return 2;
+        }
+        else if (maxSize > 250) {
+            return 4;
+        }
+        else if (maxSize > 125) {
+            return 8;
+        }
+        else {
+            return 10;
+        }
+    })();
+    // console.info('using scale: ', scale);
+    var counter = 3;
+    async function tryToConvert() {
+        try {
+            return await convert(svg, {scale: scale, width: estimatedViewbox.width, height: estimatedViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+        } catch(ex) {
+            counter -= 1;
+            if (counter <= 0) {
+                return null;
+            }
+            return await tryToConvert();
+        }
+    }
+
+    const png = await tryToConvert();
+    if (!png) {
+        throw new Error('Not a valid svg');
+    }
+    const image = await Jimp.read(png);
+    async function save(fileName) {
+        const data = await new Promise(function(resolve) {
+            image.getBuffer('image/png', function(err, data) {
+                resolve(data);
+            }); 
+        });
+        require('fs').writeFileSync(fileName, data);
+    }
+    if (process.env.DEBUG_SVG) {
+        await save('/tmp/r1.png');
+    }
+
+    // If anything is completely white - make it black and transparent
+    // await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
     // // x, y is the position of this pixel on the image
     // // idx is the position start position of this rgba tuple in the bitmap Buffer
     // // this is the image
@@ -599,90 +599,90 @@ module.exports = async function autoCropSvg(svg, options) {
     // var blue  = this.bitmap.data[ idx + 2 ];
 
     // if (red > 230 && green > 230 && blue > 230) {
-      // this.bitmap.data[idx + 0] = 0;
-      // this.bitmap.data[idx + 1] = 0;
-      // this.bitmap.data[idx + 2] = 0;
-      // this.bitmap.data[idx + 3] = 0;
+    // this.bitmap.data[idx + 0] = 0;
+    // this.bitmap.data[idx + 1] = 0;
+    // this.bitmap.data[idx + 2] = 0;
+    // this.bitmap.data[idx + 3] = 0;
     // }
-  // });
+    // });
 
-  if (process.env.DEBUG_SVG) {
-    await save('/tmp/r2.png');
-  }
-
-
-
-  const newViewbox = await getCropRegionWithWhiteBackgroundDetection({image});
+    if (process.env.DEBUG_SVG) {
+        await save('/tmp/r2.png');
+    }
 
 
-  if (process.env.DEBUG_SVG) {
-    // image.crop(false);
-    // await save('/tmp/r3.png');
-      console.info(newViewbox);
-  }
-  // add a bit of padding around the svg
-  let extraRatio = 0.02;
-  let borderX;
-  let borderY;
-  if (newViewbox.width > newViewbox.height) {
-      borderX = newViewbox.width * extraRatio;
-      borderY = borderX;
-  } else {
-      borderY = newViewbox.height * extraRatio;
-      borderX = borderY;
-  }
 
-  newViewbox.x = newViewbox.x - borderX;
-  newViewbox.y = newViewbox.y - borderY;
-  newViewbox.width = newViewbox.width  + 2 * borderX;
-  newViewbox.height = newViewbox.height + 2 * borderY;
+    const newViewbox = await getCropRegionWithWhiteBackgroundDetection({image});
 
-  // console.info(newViewbox);
-  // translate to original coordinats, our estimated svg
-  // was saved as a png file starting from (estimatedViewbox.x,estimatedViewbox.y)
-  // and having a size (estimatedViewbox.width, estimatedViewbox.height)
-  newViewbox.x = newViewbox.x / scale + estimatedViewbox.x;
-  newViewbox.y = newViewbox.y / scale + estimatedViewbox.y;
-  newViewbox.width = newViewbox.width / scale;
-  newViewbox.height = newViewbox.height / scale;
-  // console.info(newViewbox);
-  // apply a new viewbox to the svg
-  const newSvg = await updateViewbox(svg, newViewbox);
 
-  // validate svg for common errors
-  if (newSvg.indexOf('base64,') !== -1) {
-      throw new Error('SVG file embeds a png. Please use a pure svg file');
-  }
-  if (newSvg.indexOf('<text') !== -1) {
-      throw new Error('SVG file has a <text> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
-  }
-  if (newSvg.indexOf('<tspan') !== -1) {
-      throw new Error('SVG file has a <tspan> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
-  }
+    if (process.env.DEBUG_SVG) {
+        // image.crop(false);
+        // await save('/tmp/r3.png');
+        console.info(newViewbox);
+    }
+    // add a bit of padding around the svg
+    let extraRatio = 0.02;
+    let borderX;
+    let borderY;
+    if (newViewbox.width > newViewbox.height) {
+        borderX = newViewbox.width * extraRatio;
+        borderY = borderX;
+    } else {
+        borderY = newViewbox.height * extraRatio;
+        borderX = borderY;
+    }
 
-  // try extra transformations
-  const originalPng = await convert(newSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
-  const originalJimp = await Jimp.read(originalPng);
+    newViewbox.x = newViewbox.x - borderX;
+    newViewbox.y = newViewbox.y - borderY;
+    newViewbox.width = newViewbox.width  + 2 * borderX;
+    newViewbox.height = newViewbox.height + 2 * borderY;
 
-  const transformedSvg = await extraTransform(newSvg);
+    // console.info(newViewbox);
+    // translate to original coordinats, our estimated svg
+    // was saved as a png file starting from (estimatedViewbox.x,estimatedViewbox.y)
+    // and having a size (estimatedViewbox.width, estimatedViewbox.height)
+    newViewbox.x = newViewbox.x / scale + estimatedViewbox.x;
+    newViewbox.y = newViewbox.y / scale + estimatedViewbox.y;
+    newViewbox.width = newViewbox.width / scale;
+    newViewbox.height = newViewbox.height / scale;
+    // console.info(newViewbox);
+    // apply a new viewbox to the svg
+    const newSvg = await updateViewbox(svg, newViewbox);
 
-  async function tryToCompare() {
-      for ( i = 0; i < 5; i++ ) {
-          const modifiedPng = await convert(transformedSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
-          const modifiedJimp = await Jimp.read(modifiedPng);
-          if (compareImages(originalJimp, modifiedJimp)) {
-              return true;
-          }
-      }
-      return false;
-  }
-  if (await tryToCompare()) {
-      // console.info('same');
-      return transformedSvg;
-  } else {
-      // console.info('different');
-      return newSvg;
-  }
+    // validate svg for common errors
+    if (newSvg.indexOf('base64,') !== -1) {
+        throw new Error('SVG file embeds a png. Please use a pure svg file');
+    }
+    if (newSvg.indexOf('<text') !== -1) {
+        throw new Error('SVG file has a <text> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
+    }
+    if (newSvg.indexOf('<tspan') !== -1) {
+        throw new Error('SVG file has a <tspan> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
+    }
+
+    // try extra transformations
+    const originalPng = await convert(newSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+    const originalJimp = await Jimp.read(originalPng);
+
+    const transformedSvg = await extraTransform(newSvg);
+
+    async function tryToCompare() {
+        for ( i = 0; i < 5; i++ ) {
+            const modifiedPng = await convert(transformedSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+            const modifiedJimp = await Jimp.read(modifiedPng);
+            if (compareImages(originalJimp, modifiedJimp)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    if (await tryToCompare()) {
+        // console.info('same');
+        return transformedSvg;
+    } else {
+        // console.info('different');
+        return newSvg;
+    }
 
 }
 
