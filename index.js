@@ -285,7 +285,7 @@ async function getCropRegionWithWhiteBackgroundDetection({svg, image, allowScali
             const b = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 2];
             const a = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 3];
             const isBorderPixel = x === newViewbox.x || x === newViewbox.x + newViewbox.width || y === newViewbox.y || y === newViewbox.y + newViewbox.height;
-            const isWhiteBorderPixel = (isBorderPixel && r >= 250 && g >= 250 && b >= 250);
+            const isWhiteBorderPixel = (isBorderPixel && r >= 250 && g >= 250 && b >= 250 );
             const isTransparentPixel = a === 0;
             if (isBorderPixel) {
                 totalBorderPixels += 1;
@@ -386,6 +386,7 @@ async function getCropRegion(image) {
             break;
         }
     }
+    console.info({left, top, right, bottom});
     if (!_.isNumber(left) || !_.isNumber(top) || !_.isNumber(right) || !_.isNumber(bottom)) {
         throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
     }
@@ -484,6 +485,7 @@ const compareImages = function(jimp1, jimp2) {
 
 // If anything is completely white - make it black and transparent
 async function whiteToTransparent(image) {
+    let c1 = 0, c2 = 0;
     await image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
         // x, y is the position of this pixel on the image
         // idx is the position start position of this rgba tuple in the bitmap Buffer
@@ -492,14 +494,30 @@ async function whiteToTransparent(image) {
         var red   = this.bitmap.data[ idx + 0 ];
         var green = this.bitmap.data[ idx + 1 ];
         var blue  = this.bitmap.data[ idx + 2 ];
+        var alpha = this.bitmap.data[ idx + 3 ];
 
-        if (red > 250 && green > 250 && blue > 250) {
+        if (red > 250 && green > 250 && blue > 250 && alpha === 255) {
+            c1 += 1;
             this.bitmap.data[idx + 0] = 0;
             this.bitmap.data[idx + 1] = 0;
             this.bitmap.data[idx + 2] = 0;
             this.bitmap.data[idx + 3] = 0;
+        } else {
+            c2 += 1;
         }
     });
+    async function save(fileName) {
+        const data = await new Promise(function(resolve) {
+            image.getBuffer('image/png', function(err, data) {
+                resolve(data);
+            }); 
+        });
+        require('fs').writeFileSync(fileName, data);
+    }
+    if (process.env.DEBUG_SVG) {
+        await save('/tmp/r03.png');
+    }
+    console.info({c1, c2});
 }
 
 module.exports = async function autoCropSvg(svg, options) {
