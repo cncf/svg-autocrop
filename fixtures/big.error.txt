@@ -1,0 +1,1 @@
+SVG file embeds a png. Please use a pure svg file
