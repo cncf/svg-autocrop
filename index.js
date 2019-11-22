@@ -316,9 +316,15 @@ async function getCropRegionWithWhiteBackgroundDetection({svg, image, allowScali
     if (borderRatio > 0.99 && transparentRatio < 0.01) {
         console.info('Converting image to transparent');
         await whiteToTransparent(image);
-        const result =  await getCropRegion(image);
-        console.info('Diff in results: ', newViewbox, result);
-        return result;
+        try {
+            const result =  await getCropRegion(image);
+            console.info('Diff in results: ', newViewbox, result);
+            return result;
+        } catch(ex) {
+            console.info('Can not return a transparent image, using an original one');
+            console.info(newViewbox);
+            return newViewbox;
+        }
     } else {
         return newViewbox;
     }
@@ -496,7 +502,7 @@ async function whiteToTransparent(image) {
         var blue  = this.bitmap.data[ idx + 2 ];
         var alpha = this.bitmap.data[ idx + 3 ];
 
-        if (red > 250 && green > 250 && blue > 250 && alpha === 255) {
+        if (red > 250 && green > 250 && blue > 250) {
             c1 += 1;
             this.bitmap.data[idx + 0] = 0;
             this.bitmap.data[idx + 1] = 0;
