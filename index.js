@@ -92,6 +92,8 @@ async function svgo({content, title}) {
             convertColors: true,
         },{
             convertPathData: true,
+            floatPrecision: 5,
+            transformPrecision: 7
         },{
             convertTransform: true,
         },{
@@ -240,6 +242,8 @@ async function extraTransform(svg) {
         full: true,
         plugins: [{
             collapseGroups: true,
+        }, {
+            convertPathData: true
         }]
     })).optimize(svg);
     return result.data;
@@ -700,11 +704,13 @@ module.exports = async function autoCropSvg(svg, options) {
         }
         return false;
     }
-    if (await tryToCompare()) {
-        // console.info('same');
+    console.time('compare');
+    let compareResult = await tryToCompare();
+    console.timeEnd('compare');
+    if (compareResult) {
         return transformedSvg;
     } else {
-        // console.info('different');
+        console.info('different');
         return newSvg;
     }
 
