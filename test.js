@@ -52,9 +52,6 @@ async function main() {
                 const expectedParts = separateContentAndViewbox(outputContent);
 
                 const matchingLevel = compareBoxes(realParts, expectedParts);
-                console.info({matchingLevel});
-
-
                 if (realParts.remaining !== expectedParts.remaining || matchingLevel < 0.995) {
                     const beautify = require('xml-beautifier');
                     console.info(`Fixture do not match: ${inputFile}, ${outputFile}`);

@@ -4,6 +4,11 @@ const { convert } = require('convert-svg-to-png');
 const SVGO = require('svgo');
 
 const maxSize = 16000; //original SVG files should be up to this size
+const debugInfo = function() {
+    if (process.env.DEBUG_SVG) {
+        console.info.apply(this, arguments);
+    }
+}
 
 const makeHelpers = function(root) {
     return function(x) {
@@ -243,7 +248,10 @@ async function extraTransform(svg) {
         plugins: [{
             collapseGroups: true,
         }, {
-            convertPathData: true
+            convertPathData: {
+                floatPrecision: 5,
+                transformPrecision: 7
+            }
         }]
     })).optimize(svg);
     return result.data;
@@ -281,7 +289,7 @@ async function getCropRegionWithWhiteBackgroundDetection({svg, image, allowScali
     let totalPixelsInside = 0;
     let transparentPixelsInside = 0;
     let nonWhiteOrNonTransparent = 0;
-    console.info(newViewbox);
+    debugInfo(newViewbox);
     for (let x = newViewbox.x; x <= newViewbox.x + newViewbox.width; x += 1) {
         for (let y = newViewbox.y; y <= newViewbox.y + newViewbox.height; y += 1) {
             const r = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 0];
@@ -303,30 +311,30 @@ async function getCropRegionWithWhiteBackgroundDetection({svg, image, allowScali
             }
         }
     }
-    console.info({totalBorderPixels, whiteBorderPixels, allowScaling});
+    debugInfo({totalBorderPixels, whiteBorderPixels, allowScaling});
     if (totalBorderPixels < 400 && allowScaling) {
-        console.info('Too few border pixels on estimate - not possible to detect a white background, scaling the image again');
+        debugInfo('Too few border pixels on estimate - not possible to detect a white background, scaling the image again');
         return newViewbox;
     }
     if (totalBorderPixels < 400 && !allowScaling) {
-        console.info('Too few border pixels on final - not possible to detect a white background, scaling the image again');
+        debugInfo('Too few border pixels on final - not possible to detect a white background, scaling the image again');
         process.exit(1);
     }
 
     var borderRatio = totalBorderPixels ? whiteBorderPixels / totalBorderPixels : 0;
     var transparentRatio = totalPixelsInside ? transparentPixelsInside / totalPixelsInside : 0;
 
-    console.info(borderRatio, transparentRatio);
+    debugInfo(borderRatio, transparentRatio);
     if (borderRatio > 0.99 && transparentRatio < 0.01) {
-        console.info('Converting image to transparent');
+        debugInfo('Converting image to transparent');
         await whiteToTransparent(image);
         try {
             const result =  await getCropRegion(image);
-            console.info('Diff in results: ', newViewbox, result);
+            debugInfo('Diff in results: ', newViewbox, result);
             return result;
         } catch(ex) {
-            console.info('Can not return a transparent image, using an original one');
-            console.info(newViewbox);
+            debugInfo('Can not return a transparent image, using an original one');
+            debugInfo(newViewbox);
             return newViewbox;
         }
     } else {
@@ -396,7 +404,7 @@ async function getCropRegion(image) {
             break;
         }
     }
-    console.info({left, top, right, bottom});
+    debugInfo({left, top, right, bottom});
     if (!_.isNumber(left) || !_.isNumber(top) || !_.isNumber(right) || !_.isNumber(bottom)) {
         throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
     }
@@ -527,7 +535,7 @@ async function whiteToTransparent(image) {
     if (process.env.DEBUG_SVG) {
         await save('/tmp/r03.png');
     }
-    console.info({c1, c2});
+    debugInfo({c1, c2});
 }
 
 module.exports = async function autoCropSvg(svg, options) {
@@ -550,7 +558,7 @@ module.exports = async function autoCropSvg(svg, options) {
     // get a border on a small scale
     const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.05  });
     if (process.env.DEBUG_SVG) {
-        console.info('estimated: ', estimatedViewbox);
+        debugInfo('estimated: ', estimatedViewbox);
     }
 
     //get an svg in that new viewbox
@@ -646,7 +654,7 @@ module.exports = async function autoCropSvg(svg, options) {
     if (process.env.DEBUG_SVG) {
         // image.crop(false);
         // await save('/tmp/r3.png');
-        console.info(newViewbox);
+        debugInfo(newViewbox);
     }
     // add a bit of padding around the svg
     let extraRatio = 0.02;
@@ -704,14 +712,21 @@ module.exports = async function autoCropSvg(svg, options) {
         }
         return false;
     }
-    console.time('compare');
+    if (process.env.DEBUG_SVG) {
+        console.time('compare');
+    }
     let compareResult = await tryToCompare();
-    console.timeEnd('compare');
+    if (process.env.DEBUG_SVG) {
+        console.timeEnd('compare');
+    }
     if (compareResult) {
-        return transformedSvg;
+        let output = transformedSvg;
+        return output;
     } else {
-        console.info('different');
-        return newSvg;
+        debugInfo('different');
+        let output = newSvg;
+        output.skipRiskyTransformations = true;
+        return output;
     }
 
 }
