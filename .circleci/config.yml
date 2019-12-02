@@ -20,6 +20,6 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
           name: run tests
-          command: npm test
+          command: DEBUG_SVG=1 npm test
       - store_artifacts:
           path: ~/cncf/coverage
