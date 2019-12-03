@@ -96,9 +96,7 @@ async function svgo({content, title}) {
         },{
             convertColors: true,
         },{
-            convertPathData: true,
-            floatPrecision: 5,
-            transformPrecision: 7
+            convertPathData: false,
         },{
             convertTransform: true,
         },{
@@ -718,6 +716,7 @@ module.exports = async function autoCropSvg(svg, options) {
     let compareResult = await tryToCompare();
     if (process.env.DEBUG_SVG) {
         console.timeEnd('compare');
+        console.info({compareResult});
     }
     if (compareResult) {
         let output = transformedSvg;
