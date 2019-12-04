@@ -719,13 +719,16 @@ module.exports = async function autoCropSvg(svg, options) {
         console.info({compareResult});
     }
     if (compareResult) {
-        let output = transformedSvg;
-        return output;
+        return {
+            result: transformedSvg,
+            skipRiskyTransformations: false
+        }
     } else {
         debugInfo('different');
-        let output = newSvg;
-        output.skipRiskyTransformations = true;
-        return output;
+        return {
+            result: newSvg,
+            skipRiskyTransformations: true
+        }
     }
 
 }

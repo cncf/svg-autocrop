@@ -31,13 +31,21 @@ async function main() {
     const inputFiles = inputFileOptions.inputFiles;
     const inputFn = inputFileOptions.inputFn;
     const outputFn = inputFileOptions.outputFn;
+    let riskyCount = 0;
     for (var file of inputFiles) {
         const inputFile = inputFn(file);
         const outputFile = outputFn(file);
         const inputContent = require('fs').readFileSync(inputFile, 'utf-8');
         try {
             console.info(`Processing ${inputFile} and saving to ${outputFile}`);
-            const convertedSvg = await autoCropSvg(inputContent);
+            const output = await autoCropSvg(inputContent);
+            const convertedSvg = output.result;
+            const skipRiskyTransformations = output.skipRiskyTransformations;
+            console.info({skipRiskyTransformations});
+            if (skipRiskyTransformations) {
+                riskyCount += 1;
+                console.info(`We had to skip a risky transformation, total skipped: ${riskyCount}`);
+            }
             require('fs').writeFileSync(outputFile, convertedSvg);
             result.push({
                 name: inputFile,
