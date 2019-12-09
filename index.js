@@ -695,14 +695,15 @@ module.exports = async function autoCropSvg(svg, options) {
     }
 
     // try extra transformations
-    const originalPng = await convert(newSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+    const compareScale = 0.5;
+    const originalPng = await convert(newSvg, {scale: compareScale, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
     const originalJimp = await Jimp.read(originalPng);
 
     const transformedSvg = await extraTransform(newSvg);
 
     async function tryToCompare() {
         for ( i = 0; i < 5; i++ ) {
-            const modifiedPng = await convert(transformedSvg, {scale: 0.1, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
+            const modifiedPng = await convert(transformedSvg, {scale: compareScale, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
             const modifiedJimp = await Jimp.read(modifiedPng);
             if (compareImages(originalJimp, modifiedJimp)) {
                 return true;
