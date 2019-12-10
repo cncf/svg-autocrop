@@ -20,6 +20,6 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
           name: run tests
-          command: DEBUG_SVG=1 npm test
+          command: ./docker.sh "MATCH=amazon-ecr npm run test"
       - store_artifacts:
           path: ~/cncf/coverage
