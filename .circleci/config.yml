@@ -13,13 +13,13 @@ jobs:
           - v1-dependencies-
       - run:
           name: Install Dependencies
-          command: npm ci && rm -r node_modules/* && npx npm-force-resolutions && npm install
+          command: npm ci && rm -r node_modules && npx npm-force-resolutions && npm install
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
           name: run tests
-          command: MATCH=amazon-ecr npm run test
+          command: DEBUG_SVG=1 npm run test
       - store_artifacts:
           path: ~/cncf/coverage
