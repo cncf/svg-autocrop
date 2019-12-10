@@ -1,1 +1,1 @@
-docker run -it --rm -v $(pwd):/app -v $(pwd)/docker_node_modules:/app/node_modules circleci/node:current-stretch-browsers-legacy bash -lc "cd /app;npm install; $1"
+docker run -it --rm -v $(pwd):/app -v $(pwd)/docker_node_modules:/app/node_modules circleci/node:current-stretch-browsers-legacy bash -lc "cd /app && npm ci && rm -r node_modules/* && npx npm-force-resolutions && npm install && $1"
