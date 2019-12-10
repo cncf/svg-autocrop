@@ -695,7 +695,7 @@ module.exports = async function autoCropSvg(svg, options) {
     }
 
     // try extra transformations
-    const compareScale = 0.5;
+    const compareScale = 0.1;
     const originalPng = await convert(newSvg, {scale: compareScale, width: newViewbox.width, height: newViewbox.height, puppeteer: {args: ['--no-sandbox', '--disable-setuid-sandbox']}});
     const originalJimp = await Jimp.read(originalPng);
 
