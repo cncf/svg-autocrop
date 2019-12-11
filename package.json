@@ -1,6 +1,6 @@
 {
   "name": "svg-autocrop",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Auto crop svg files and remove extraneous tags and attributes",
   "main": "index.js",
   "scripts": {
@@ -41,7 +41,7 @@
     "lodash": "^4.17.15",
     "npm-force-resolutions": "0.0.3",
     "prettydiff": "^101.2.6",
-    "puppeteer": "^2.0.0",
+    "puppeteer": "2.0.0",
     "svgo": "^1.3.2",
     "ws": "^7.2.0",
     "xml-beautifier": "^0.4.2"
@@ -50,6 +50,6 @@
     "nyc": "^14.1.1"
   },
   "resolutions": {
-    "puppeteer": "^2.0.0"
+    "puppeteer": "2.0.0"
   }
 }
