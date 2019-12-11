@@ -8,7 +8,9 @@
     "fix": "node fix.js",
     "capture": "CAPTURE=1 node test.js",
     "one-image": "CAPTURE=1 MATCH=kubernetes node test.js",
-    "preinstall": "(ls .svg-autocrop && npx npm-force-resolutions) || true"
+    "preinstall": "(ls .svg-autocrop && npx npm-force-resolutions) || true",
+    "prepublish": "npm shrinkwrap",
+    "postpublish": "mv npm-shrinkwrap.json package-lock.json"
   },
   "repository": {
     "type": "git",
