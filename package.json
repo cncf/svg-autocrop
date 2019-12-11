@@ -8,8 +8,7 @@
     "fix": "node fix.js",
     "capture": "CAPTURE=1 node test.js",
     "one-image": "CAPTURE=1 MATCH=kubernetes node test.js",
-    "latest": "npm install",
-    "preinstall": "npx npm-force-resolutions"
+    "preinstall": "(ls .svg-autocrop && npx npm-force-resolutions) || true"
   },
   "repository": {
     "type": "git",
