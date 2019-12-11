@@ -9,7 +9,7 @@
     "capture": "CAPTURE=1 node test.js",
     "one-image": "CAPTURE=1 MATCH=kubernetes node test.js",
     "preinstall": "npx npm-force-resolutions",
-    "prepublish": "npm shrinkwrap",
+    "prepublishOnly": "npm shrinkwrap",
     "postpublish": "mv npm-shrinkwrap.json package-lock.json"
   },
   "repository": {
