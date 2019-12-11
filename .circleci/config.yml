@@ -13,7 +13,7 @@ jobs:
           - v1-dependencies-
       - run:
           name: Install Dependencies
-          command: npm ci
+          command: mkdir -p node_modules && rm -rf node_modules/* && npm ci
       - save_cache:
           paths:
             - node_modules
