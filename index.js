@@ -122,7 +122,7 @@ async function svgo({content, title}) {
         },{
             removeRasterImages: false,
         },{
-            mergePaths: true,
+            mergePaths: {noSpaceAfterFlags: false },
         },{
             convertShapeToPath: true,
         },{
@@ -247,6 +247,7 @@ async function extraTransform(svg) {
             collapseGroups: true,
         }, {
             convertPathData: {
+                noSpaceAfterFlags: false,
                 floatPrecision: 5,
                 transformPrecision: 7
             }
