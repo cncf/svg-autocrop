@@ -1,0 +1,1 @@
+SVG file contains an image. Please use a pure svg file

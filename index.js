@@ -688,6 +688,9 @@ module.exports = async function autoCropSvg(svg, options) {
     if (newSvg.indexOf('base64,') !== -1) {
         throw new Error('SVG file embeds a png. Please use a pure svg file');
     }
+    if (newSvg.indexOf('<image') !== -1) {
+        throw new Error('SVG file contains an image. Please use a pure svg file');
+    }
     if (newSvg.indexOf('<text') !== -1) {
         throw new Error('SVG file has a <text> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
     }
