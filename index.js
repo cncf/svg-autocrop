@@ -47,7 +47,7 @@ async function svgo({content, title}) {
                     if (root.attrs && root.attrs.style) {
                         rootStyle = `svg {${root.attrs.style.value}}`;
                     }
-                    else if (root.content[0].elem === 'style' && root.content[0].content[0].text.indexOf('svg {' === 0)) {
+                    else if (root.content[0].elem === 'style' && root.content[0].content && root.content[0].content[0].text.indexOf('svg {' === 0)) {
                         rootStyle = root.content[0].content[0].text;
                     }
                     return data;
@@ -656,7 +656,7 @@ module.exports = async function autoCropSvg(svg, options) {
         debugInfo(newViewbox);
     }
     // add a bit of padding around the svg
-    let extraRatio = 0.02;
+    let extraRatio = options.extraRatio || 0.02;
     let borderX;
     let borderY;
     if (newViewbox.width > newViewbox.height) {
