@@ -289,7 +289,7 @@ async function getCropRegionWithWhiteBackgroundDetection({svg, image, allowScali
     let totalPixelsInside = 0;
     let transparentPixelsInside = 0;
     let nonWhiteOrNonTransparent = 0;
-    debugInfo(newViewbox);
+    debugInfo('292', newViewbox);
     for (let x = newViewbox.x; x <= newViewbox.x + newViewbox.width; x += 1) {
         for (let y = newViewbox.y; y <= newViewbox.y + newViewbox.height; y += 1) {
             const r = image.bitmap.data[ (y * image.bitmap.width + x) * 4 + 0];
@@ -404,7 +404,7 @@ async function getCropRegion(image) {
             break;
         }
     }
-    debugInfo({left, top, right, bottom});
+    debugInfo('Crop region result: ', {left, top, right, bottom});
     if (!_.isNumber(left) || !_.isNumber(top) || !_.isNumber(right) || !_.isNumber(bottom)) {
         throw new Error('SVG image has dimension more than 4000x4000, we do not support SVG images of this size or larger');
     }
@@ -423,7 +423,7 @@ async function convert({svg, width, height, scale = 1 }) {
     let html = `<!DOCTYPE html>
     <style>
     * { margin: 0; padding: 0; }
-    html { background-color: transparent; }
+    html { background-color: transparent; overflow: hidden; }
     </style>`;
     if (start >= 0) {
         html += svg.substring(start);
@@ -432,7 +432,7 @@ async function convert({svg, width, height, scale = 1 }) {
     }
     const fileName = `/tmp/convert-svg-${Math.random()}.html`;
     require('fs').writeFileSync(fileName, html);
-    const browser = await puppeteer.launch({headless: false, args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
     const url = fileUrl(fileName);
     // console.info(url);
@@ -443,11 +443,12 @@ async function convert({svg, width, height, scale = 1 }) {
     const totalHeight = height * scale;
     console.info({totalWidth, totalHeight});
     
-    // await page.evaluate(({ width, height }) => {
+    // await page.waitForSelector('svg');
+    // await page.evaluate(`
         // const el = document.querySelector('svg');
-        // // el.setAttribute('width', `${width}px`);
-        // // el.setAttribute('height', `${height}px`);
-    // }, {width: totalWidth, height: totalHeight });
+        // el.setAttribute('width', '${totalWidth}px');
+        // el.setAttribute('height', '${totalHeight}px');
+    // `);
 
     await page.setViewport({ width: Math.round(totalWidth), height: Math.round(totalHeight) });
 
@@ -602,7 +603,7 @@ module.exports = async function autoCropSvg(svg, options) {
     // get a border on a small scale
     const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.05  });
     if (process.env.DEBUG_SVG) {
-        debugInfo('estimated: ', estimatedViewbox);
+        debugInfo('estimated1: ', estimatedViewbox);
     }
 
     //get an svg in that new viewbox
@@ -652,6 +653,7 @@ module.exports = async function autoCropSvg(svg, options) {
     }
 
     const png = await tryToConvert();
+    // await (new Promise(function(){}));
     if (!png) {
         throw new Error('Not a valid svg');
     }
