@@ -35,7 +35,6 @@
   },
   "homepage": "https://github.com/cncf/svg-autocrop#readme",
   "dependencies": {
-    "convert-svg-to-png": "0.5.0",
     "glob": "^7.1.6",
     "https-proxy-agent": "^5.0.0",
     "jimp": "^0.12.1",
