@@ -441,7 +441,6 @@ async function convert({svg, width, height, scale = 1 }) {
 
     const totalWidth = width * scale;
     const totalHeight = height * scale;
-    console.info({totalWidth, totalHeight});
     
     // await page.waitForSelector('svg');
     // await page.evaluate(`
@@ -473,7 +472,7 @@ async function getEstimatedViewbox({svg, scale}) {
     });
 
     // attempt to convert it again if it fails
-    var counter = 3;
+    var counter = 6;
     async function tryToConvert() {
         try {
             return await convert({svg, scale: scale, width: 2 * maxSize,height: 2 * maxSize});
@@ -639,7 +638,7 @@ module.exports = async function autoCropSvg(svg, options) {
         }
     })();
     // console.info('using scale: ', scale);
-    var counter = 3;
+    var counter = 6;
     async function tryToConvert() {
         try {
             return await convert({svg, scale: scale, width: estimatedViewbox.width, height: estimatedViewbox.height});
