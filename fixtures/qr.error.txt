@@ -1,0 +1,1 @@
+We do not support SVG inside of SVG because that format is unlikely to reproduce reliably on different devices.

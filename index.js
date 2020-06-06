@@ -54,9 +54,15 @@ async function svgo({content, title}) {
                     return data;
                 }
             }
-        }]
+        }
+        
+        ]
     })).optimize(content);
+    if (process.env.DEBUG_SVG) {
+        require('fs').writeFileSync('/tmp/s1.svg', result.data);
+    }
 
+    let rootUpdated = false;
     result = await (new SVGO({
         plugins: [{
             cleanupAttrs: true,
@@ -182,17 +188,25 @@ async function svgo({content, title}) {
                 type: 'perItem',
                 fn: function(item) {
                     if (item.elem === 'svg') {
-                        const xmlns = item.attrs.xmlns;
-                        const xmlnsxlink = item.attrs['xmlns:xlink'];
-                        item.attrs = { xmlns: xmlns, role: {name: 'role', value: 'img', local: 'role', prefix: ''}};
-                        if (xmlnsxlink) {
-                            item.attrs['xmlns:xlink'] = xmlnsxlink;
+                        if (!rootUpdated) {
+                            rootUpdated = true;
+                            const xmlns = item.attrs.xmlns;
+                            const xmlnsxlink = item.attrs['xmlns:xlink'];
+                            item.attrs = { xmlns: xmlns, role: {name: 'role', value: 'img', local: 'role', prefix: ''}};
+                            if (xmlnsxlink) {
+                                item.attrs['xmlns:xlink'] = xmlnsxlink;
+                            }
+                        } else {
+                            throw new Error('We do not support SVG inside of SVG because that format is unlikely to reproduce reliably on different devices.');
                         }
                     }
                 }
             }
         }]
     })).optimize(result.data);
+    if (process.env.DEBUG_SVG) {
+        require('fs').writeFileSync('/tmp/s2.svg', result.data);
+    }
 
     if (rootStyle) {
         result = await (new SVGO({
@@ -216,6 +230,9 @@ async function svgo({content, title}) {
             }]
         })).optimize(result.data);
     }
+    if (process.env.DEBUG_SVG) {
+        require('fs').writeFileSync('/tmp/s3.svg', result.data);
+    }
 
     if (title) {
         result = await (new SVGO({
@@ -237,6 +254,9 @@ async function svgo({content, title}) {
                 }
             }]
         })).optimize(result.data);
+    }
+    if (process.env.DEBUG_SVG) {
+        require('fs').writeFileSync('/tmp/s4.svg', result.data);
     }
     return result.data;
 }
@@ -595,6 +615,9 @@ module.exports = async function autoCropSvg(svg, options) {
             previousSvg = svg;
         }
     }
+    if (process.env.DEBUG_SVG) {
+        require('fs').writeFileSync('/tmp/s5.svg', svg);
+    }
     // get a maximum possible viewbox which covers the whole region;
     const width = maxSize;
     const height = maxSize;
@@ -610,6 +633,9 @@ module.exports = async function autoCropSvg(svg, options) {
     // attempt to convert it again if it fails
     // estimated viewBox has a size which is dividable by 20,
     //  because previewScale is 0.05 (x1/20)
+    if (process.env.DEBUG_SVG) {
+        require('fs').writeFileSync('/tmp/s6.svg', svg);
+    }
     const scale = (function() {
         const maxSize = Math.max(estimatedViewbox.width, estimatedViewbox.height);
         if (maxSize > 8000) {
@@ -729,6 +755,9 @@ module.exports = async function autoCropSvg(svg, options) {
     // console.info(newViewbox);
     // apply a new viewbox to the svg
     const newSvg = await updateViewbox(svg, newViewbox);
+    if (process.env.DEBUG_SVG) {
+        require('fs').writeFileSync('/tmp/s5.svg', newSvg);
+    }
 
     // validate svg for common errors
     if (newSvg.indexOf('base64,') !== -1) {
