@@ -56,7 +56,15 @@ These directions will let you manually optimize SVGs on a Mac:
 
 *Update*
 1. Every month or so, you should update the software: `brew update && brew upgrade && npm update -g`
-    
+
+## Autocropping multiple SVGs
+
+You can recursively autocrop multiple SVGs (while non-SVG files are ignored) with the command:
+
+`node fix --recursive ../artwork/`
+
+(Do this from the svg-autocrop directory and set the directory to where you have images to autocrop.)
+
 ## Debugging the project
 * npm test will run a full check on all the images in the fixture folder
 * CAPTURE=1 npm test will run an svg-autocrop on all images in the fixture
