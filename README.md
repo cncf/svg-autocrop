@@ -33,7 +33,7 @@ svg-autocrop requires a transparent or a white background to work correctly.
 
 For more information on recommended rules for collecting logos, please see the [guidelines](https://github.com/cncf/landscape#logos) for the [CNCF Cloud Native Landscape](https://landscape.cncf.io).
 
-svg-autocrop has been developed by [Andrey Kozlov](https://github.com/ZeusTheTrueGod) and [Dan Kohn](https://www.dankohn.com) of [CNCF](https://www.cncf.io).
+svg-autocrop has been developed by [Andrey Kozlov](https://github.com/AndreyKozlov1984) and [Dan Kohn](https://www.dankohn.com) of [CNCF](https://www.cncf.io).
 
 ## Manually Optimizing SVGs
 
