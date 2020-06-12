@@ -438,6 +438,7 @@ async function getCropRegion(image) {
 // given svg file. So if an svg file is 4000x4000, than a 0.1 scaled version
 // is just 400x400 and thus way faster to process
 // the obvious side effect that we have a +- (1 / scale) error
+let browser;
 async function convert({svg, width, height, scale = 1 }) {
     let start = svg.indexOf('<svg');
     let html = `<!DOCTYPE html>
@@ -452,7 +453,7 @@ async function convert({svg, width, height, scale = 1 }) {
     }
     const fileName = `/tmp/convert-svg-${Math.random()}.html`;
     require('fs').writeFileSync(fileName, html);
-    const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    browser = browser || await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
     const page = await browser.newPage();
     const url = fileUrl(fileName);
     // console.info(url);
@@ -478,7 +479,7 @@ async function convert({svg, width, height, scale = 1 }) {
     });
 
     require('fs').unlinkSync(fileName);
-    await browser.close();
+    // await browser.close();
     return output;
 
 }
@@ -497,6 +498,12 @@ async function getEstimatedViewbox({svg, scale}) {
         try {
             return await convert({svg, scale: scale, width: 2 * maxSize,height: 2 * maxSize});
         } catch(ex) {
+            try {
+                await browser.close();
+            } catch(ex1) {
+
+            }
+            browser = null;
             console.info(ex);
             counter -= 1;
             if (counter <= 0) {
@@ -673,6 +680,12 @@ module.exports = async function autoCropSvg(svg, options) {
             try {
                 return await convert({svg, scale, width, height})
             } catch(ex) {
+                try {
+                    await browser.close();
+                } catch(ex1) {
+
+                }
+                browser = null;
                 debugInfo(`attempt ${attempt} failed`);
             }
         }
