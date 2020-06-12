@@ -439,6 +439,15 @@ async function getCropRegion(image) {
 // is just 400x400 and thus way faster to process
 // the obvious side effect that we have a +- (1 / scale) error
 let browser;
+const closeBrowser = async function() {
+    try {
+        await browser.close();
+    } catch (ex) {
+
+    }
+    browser = null;
+    return;
+}
 async function convert({svg, width, height, scale = 1 }) {
     let start = svg.indexOf('<svg');
     let html = `<!DOCTYPE html>
@@ -498,12 +507,7 @@ async function getEstimatedViewbox({svg, scale}) {
         try {
             return await convert({svg, scale: scale, width: 2 * maxSize,height: 2 * maxSize});
         } catch(ex) {
-            try {
-                await browser.close();
-            } catch(ex1) {
-
-            }
-            browser = null;
+            await closeBrowser();
             console.info(ex);
             counter -= 1;
             if (counter <= 0) {
@@ -637,7 +641,7 @@ function getScale(dimensions) {
     }
 };
 
-module.exports = async function autoCropSvg(svg, options) {
+async function autoCropSvg(svg, options) {
     options = options || {};
     svg = svg.toString();
     // running it up to 5 times helps to reduce amount of nested groups
@@ -680,11 +684,7 @@ module.exports = async function autoCropSvg(svg, options) {
             try {
                 return await convert({svg, scale, width, height})
             } catch(ex) {
-                try {
-                    await browser.close();
-                } catch(ex1) {
-
-                }
+                await closeBrowser();
                 browser = null;
                 debugInfo(`attempt ${attempt} failed`);
             }
@@ -830,3 +830,13 @@ module.exports = async function autoCropSvg(svg, options) {
 
 }
 
+module.exports = async function (svg, options) {
+    try {
+        const result = await autoCropSvg(svg, options);
+        await closeBrowser();
+        return result;
+    } catch(ex) {
+        await closeBrowser();
+        throw ex;
+    }
+}
