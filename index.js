@@ -3,6 +3,7 @@ const fileUrl = require('file-url');
 const _  = require('lodash');
 const Jimp = require('jimp');
 const SVGO = require('svgo');
+const addText = require('./addText');
 
 const maxSize = 16000; //original SVG files should be up to this size
 const debugInfo = function() {
@@ -790,12 +791,27 @@ async function autoCropSvg(svg, options) {
         }
     }
 
+    let svgWithText;
+    if (options.caption) {
+        svgWithText = addText({
+            input: newSvg,
+            color: 'black',
+            text: options.caption,
+            captionWidth: options.captionWidth
+        });
+        newOptions = JSON.parse(JSON.stringify(options));
+        newOptions.caption = '';
+        svgWithText = (await autoCropSvg(svgWithText, newOptions)).result;
+    } else {
+        svgWithText = newSvg;
+    }
+
     // try extra transformations
     const compareScale = 0.1;
-    const originalPng = await tryToConvert({svg: newSvg, scale: compareScale, width: newViewbox.width, height: newViewbox.height});
+    const originalPng = await tryToConvert({svg: svgWithText, scale: compareScale, width: newViewbox.width, height: newViewbox.height});
     const originalJimp = await Jimp.read(originalPng);
 
-    const transformedSvg = await extraTransform(newSvg);
+    const transformedSvg = await extraTransform(svgWithText);
 
     async function tryToCompare() {
         for ( i = 0; i < 5; i++ ) {
@@ -823,10 +839,11 @@ async function autoCropSvg(svg, options) {
     } else {
         debugInfo('different');
         return {
-            result: newSvg,
+            result: svgWithText,
             skipRiskyTransformations: true
         }
     }
+
 
 }
 
