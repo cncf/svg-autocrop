@@ -8,7 +8,7 @@ module.exports = function(options) {
     }
 
     const TextToSVG = require('text-to-svg');
-    const textToSVG = TextToSVG.loadSync(require('path').resolve(__dirname, './Helvetica-400.otf'));
+    const textToSVG = TextToSVG.loadSync(require('path').resolve(__dirname, './Helvetica-Bold-Font.otf'));
     const attributes = {fill: options.color};
     const convertOptions = {x: 0, y: 0, fontSize: 72, anchor: 'left top', attributes: attributes};
 
