@@ -37,16 +37,16 @@
     "file-url": "^3.0.0",
     "glob": "^7.1.6",
     "https-proxy-agent": "^5.0.0",
-    "jimp": "^0.12.1",
+    "jimp": "^0.13.0",
     "lodash": "^4.17.15",
     "prettydiff": "^101.2.6",
-    "puppeteer": "^3.3.0",
+    "puppeteer": "^4.0.1",
     "svgo": "^1.3.2",
     "text-to-svg": "^3.1.5",
     "ws": "^7.3.0",
     "xml-beautifier": "^0.4.3"
   },
   "devDependencies": {
-    "nyc": "^15.0.1"
+    "nyc": "^15.1.0"
   }
 }

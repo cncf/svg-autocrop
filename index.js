@@ -463,7 +463,7 @@ async function convert({svg, width, height, scale = 1 }) {
     }
     const fileName = `/tmp/convert-svg-${Math.random()}.html`;
     require('fs').writeFileSync(fileName, html);
-    browser = browser || await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    browser = browser || await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']});
     const page = await browser.newPage();
     const url = fileUrl(fileName);
     // console.info(url);
