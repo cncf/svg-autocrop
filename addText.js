@@ -28,7 +28,7 @@ module.exports = function(options) {
     const textHeight = metrics.height * scale;
 
     const textX = x + svgWidth * ( 1 - options.captionWidth) / 2;
-    const textY = svgHeight;
+    const textY = y + svgHeight;
 
     const newSvgHeight = svgHeight + textHeight;
 

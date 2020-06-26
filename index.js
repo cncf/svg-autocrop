@@ -662,8 +662,14 @@ async function autoCropSvg(svg, options) {
     const width = maxSize;
     const height = maxSize;
 
+    if (process.env.DEBUG_SVG) {
+        console.time('Estimated');
+    }
     // get a border on a small scale
     const estimatedViewbox = await getEstimatedViewbox({svg, scale: 0.05  });
+    if (process.env.DEBUG_SVG) {
+        console.timeEnd('Estimated');
+    }
     if (process.env.DEBUG_SVG) {
         debugInfo('estimated1: ', estimatedViewbox);
     }
@@ -693,12 +699,18 @@ async function autoCropSvg(svg, options) {
         return null;
     }
 
+    if (process.env.DEBUG_SVG) {
+        console.time('Convert1');
+    }
     const png = await tryToConvert({svg, scale, width: estimatedViewbox.width, height: estimatedViewbox.height});
     // await (new Promise(function(){}));
     if (!png) {
         throw new Error('Not a valid svg');
     }
     const image = await Jimp.read(png);
+    if (process.env.DEBUG_SVG) {
+        console.timeEnd('Convert1');
+    }
     async function save(fileName, image) {
         const data = await new Promise(function(resolve) {
             image.getBuffer('image/png', function(err, data) {
@@ -711,7 +723,13 @@ async function autoCropSvg(svg, options) {
         await save('/tmp/r1.png', image);
     }
 
+    if (process.env.DEBUG_SVG) {
+        console.time('CropRegion');
+    }
     const newViewbox = await getCropRegionWithWhiteBackgroundDetection({image});
+    if (process.env.DEBUG_SVG) {
+        console.timeEnd('CropRegion');
+    }
 
     // TODO: detect if viewBox approach is not possible for that image.
     // Example: ibm.input.svg logo
@@ -770,9 +788,12 @@ async function autoCropSvg(svg, options) {
         throw new Error('SVG file has a <tspan> element. Please convert it to the glyph first, because we can not render it the same way on all computers, especially on our render server');
     }
 
-    {
+    if (process.env.DEBUG_SVG) {
+        console.time('BadAutocrop');
+    }
+    if (!options.fast) {
         const scale = getScale(newViewbox);
-        const viewBoxToCompare = { x: newViewbox.x - newViewbox.width, y: newViewbox.y - newViewbox.height, width: newViewbox.width * 3, height: newViewbox.height * 3};
+        const viewBoxToCompare = { x: newViewbox.x - .1 * newViewbox.width, y: newViewbox.y - .1 * newViewbox.height, width: newViewbox.width * 1.2, height: newViewbox.height * 1.2};
         // console.info(viewBoxToCompare);
         const s2 = await updateViewbox(newSvg, viewBoxToCompare);
         const originalPng = await tryToConvert({svg: newSvg, scale, width: newViewbox.width, height: newViewbox.height});
@@ -790,6 +811,9 @@ async function autoCropSvg(svg, options) {
             throw new Error('This logo cannot be autocropped because of an unusual interaction with its viewbox. Please find a different logo or convert again from the original to SVG.');
         }
     }
+    if (process.env.DEBUG_SVG) {
+        console.timeEnd('BadAutocrop');
+    }
 
     let svgWithText;
     if (options.caption) {
@@ -801,9 +825,17 @@ async function autoCropSvg(svg, options) {
         });
         newOptions = JSON.parse(JSON.stringify(options));
         newOptions.caption = '';
+        newOptions.fast = true;
+        require('fs').writeFileSync('/tmp/text.svg', svgWithText);
         svgWithText = (await autoCropSvg(svgWithText, newOptions)).result;
     } else {
         svgWithText = newSvg;
+    }
+
+    if (options.fast) {
+        return {
+            result: svgWithText,
+        }
     }
 
     // try extra transformations
