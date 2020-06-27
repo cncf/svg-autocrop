@@ -334,14 +334,9 @@ async function getCropRegionWithWhiteBackgroundDetection({svg, image, allowScali
     }
     debugInfo({totalBorderPixels, whiteBorderPixels, allowScaling});
     if (totalBorderPixels < 400 && allowScaling) {
-        debugInfo('Too few border pixels on estimate - not possible to detect a white background, scaling the image again');
+        debugInfo(totalBorderPixels, 'Too few border pixels on estimate - not possible to detect a white background, scaling the image again');
         return newViewbox;
     }
-    if (totalBorderPixels < 400 && !allowScaling) {
-        debugInfo('Too few border pixels on final - not possible to detect a white background, scaling the image again');
-        process.exit(1);
-    }
-
     var borderRatio = totalBorderPixels ? whiteBorderPixels / totalBorderPixels : 0;
     var transparentRatio = totalPixelsInside ? transparentPixelsInside / totalPixelsInside : 0;
 
@@ -637,8 +632,22 @@ function getScale(dimensions) {
     else if (maxSize > 125) {
         return 8;
     }
-    else {
-        return 10;
+    else if (maxSize > 64) {
+        return 16;
+    }
+    else if (maxSize > 32) {
+        return 32;
+    }
+    else if (maxSize > 16) {
+        return 64;
+    }
+    else if (maxSize > 8) {
+        return 128;
+    }
+    else if (maxSize > 4) {
+        return 256;
+    } else {
+        return 512;
     }
 };
 
@@ -839,7 +848,7 @@ async function autoCropSvg(svg, options) {
     }
 
     // try extra transformations
-    const compareScale = 0.1;
+    const compareScale = 0.1 * getScale(newViewbox);
     const originalPng = await tryToConvert({svg: svgWithText, scale: compareScale, width: newViewbox.width, height: newViewbox.height});
     const originalJimp = await Jimp.read(originalPng);
 
