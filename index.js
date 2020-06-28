@@ -476,7 +476,7 @@ async function convert({svg, width, height, scale = 1 }) {
         // el.setAttribute('height', '${totalHeight}px');
     // `);
 
-    console.info('ViewportSize: ', {totalWidth, totalHeight });
+    debugInfo(`ViewportSize: ${totalWidth} x ${totalHeight}`);
     await page.setViewport({ width: Math.round(totalWidth), height: Math.round(totalHeight) });
 
     const output = await page.screenshot({
@@ -487,6 +487,7 @@ async function convert({svg, width, height, scale = 1 }) {
 
     require('fs').unlinkSync(fileName);
     // await browser.close();
+    debugInfo('Screenshot done');
     return output;
 
 }
@@ -794,16 +795,16 @@ async function autoCropSvg(svg, options) {
         const s2 = await updateViewbox(newSvg, viewBoxToCompare);
         const originalPng = await tryToConvert({svg: newSvg, scale, width: newViewbox.width, height: newViewbox.height});
         const doublePng = await tryToConvert({svg: s2, scale, width: viewBoxToCompare.width, height: viewBoxToCompare.height });
-        debug('Screenshots created'); 
+        debugInfo('Screenshots created'); 
         const originalImg = await Jimp.read(originalPng);
         const doubleImg = await Jimp.read(doublePng);
-        debug('Images loaded'); 
+        debugInfo('Images loaded'); 
         require('fs').writeFileSync('/tmp/r3.png', originalPng);
         require('fs').writeFileSync('/tmp/r4.png', doublePng);
         const originalViewbox = await getCropRegionWithWhiteBackgroundDetection({image: originalImg});
-        debug('originalViewbox calculated'); 
+        debugInfo('originalViewbox calculated'); 
         const doubleViewbox = await getCropRegionWithWhiteBackgroundDetection({image: doubleImg});
-        debug('doubleViewbox calculated'); 
+        debugInfo('doubleViewbox calculated'); 
         const maxDiffWidth = Math.abs(originalViewbox.width - doubleViewbox.width);
         const maxDiffHeight = Math.abs(originalViewbox.height - doubleViewbox.height);
         if (maxDiffWidth > 2 || maxDiffHeight > 2) {
