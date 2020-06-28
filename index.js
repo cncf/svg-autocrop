@@ -484,7 +484,7 @@ async function convert({svg, width, height, scale = 1 }) {
       type: 'png',
       omitBackground: true,
       clip: { x: 0, y: 0, width: totalWidth, height: totalHeight }
-    });
+    }).timeout(10 * 1000);
     debugInfo(`Finished a screenshot`);
 
     require('fs').unlinkSync(fileName);
