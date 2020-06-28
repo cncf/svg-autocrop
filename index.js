@@ -480,11 +480,19 @@ async function convert({svg, width, height, scale = 1 }) {
     await page.setViewport({ width: Math.round(totalWidth), height: Math.round(totalHeight) });
 
     debugInfo(`Started a screenshot`);
-    const output = await page.screenshot({
-      type: 'png',
-      omitBackground: true,
-      clip: { x: 0, y: 0, width: totalWidth, height: totalHeight }
-    }).timeout(10 * 1000);
+    const output = await new Promise(function(resolve, reject) {
+        let resolved = false;
+        page.screenshot({
+            type: 'png',
+            omitBackground: true,
+            clip: { x: 0, y: 0, width: totalWidth, height: totalHeight }
+        }).then( function(result) { resolved = true; resolve(result) });
+        setTimeout(function() {
+            if (!resolved) {
+                reject(new Error('Timeout'));
+            }
+        }, 10 * 1000);
+    });
     debugInfo(`Finished a screenshot`);
 
     require('fs').unlinkSync(fileName);
