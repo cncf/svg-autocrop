@@ -1,3 +1,4 @@
+const Promise = require('bluebird');
 const puppeteer = require('puppeteer');
 const fileUrl = require('file-url');
 const _  = require('lodash');

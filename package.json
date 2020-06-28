@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/cncf/svg-autocrop#readme",
   "dependencies": {
+    "bluebird": "^3.7.2",
     "file-url": "^3.0.0",
     "glob": "^7.1.6",
     "https-proxy-agent": "^5.0.0",
