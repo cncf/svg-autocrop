@@ -480,6 +480,9 @@ async function convert({svg, width, height, scale = 1 }) {
     await page.setViewport({ width: Math.round(totalWidth), height: Math.round(totalHeight) });
 
     debugInfo(`Started a screenshot`);
+    // A workaround for a known bug: https://github.com/puppeteer/puppeteer/issues/4273
+    // the page.screenshot may hang because of random reasons
+    // the solution is to retry with a new browser instance
     const output = await new Promise(function(resolve, reject) {
         let resolved = false;
         page.screenshot({
