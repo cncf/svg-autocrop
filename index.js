@@ -794,12 +794,16 @@ async function autoCropSvg(svg, options) {
         const s2 = await updateViewbox(newSvg, viewBoxToCompare);
         const originalPng = await tryToConvert({svg: newSvg, scale, width: newViewbox.width, height: newViewbox.height});
         const doublePng = await tryToConvert({svg: s2, scale, width: viewBoxToCompare.width, height: viewBoxToCompare.height });
+        debug('Screenshots created'); 
         const originalImg = await Jimp.read(originalPng);
         const doubleImg = await Jimp.read(doublePng);
+        debug('Images loaded'); 
         require('fs').writeFileSync('/tmp/r3.png', originalPng);
         require('fs').writeFileSync('/tmp/r4.png', doublePng);
         const originalViewbox = await getCropRegionWithWhiteBackgroundDetection({image: originalImg});
+        debug('originalViewbox calculated'); 
         const doubleViewbox = await getCropRegionWithWhiteBackgroundDetection({image: doubleImg});
+        debug('doubleViewbox calculated'); 
         const maxDiffWidth = Math.abs(originalViewbox.width - doubleViewbox.width);
         const maxDiffHeight = Math.abs(originalViewbox.height - doubleViewbox.height);
         if (maxDiffWidth > 2 || maxDiffHeight > 2) {
