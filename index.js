@@ -479,11 +479,13 @@ async function convert({svg, width, height, scale = 1 }) {
     debugInfo(`ViewportSize: ${totalWidth} x ${totalHeight}`);
     await page.setViewport({ width: Math.round(totalWidth), height: Math.round(totalHeight) });
 
+    debugInfo(`Started a screenshot`);
     const output = await page.screenshot({
       type: 'png',
       omitBackground: true,
       clip: { x: 0, y: 0, width: totalWidth, height: totalHeight }
     });
+    debugInfo(`Finished a screenshot`);
 
     require('fs').unlinkSync(fileName);
     // await browser.close();
