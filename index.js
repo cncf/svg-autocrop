@@ -475,6 +475,7 @@ async function convert({svg, width, height, scale = 1 }) {
         // el.setAttribute('height', '${totalHeight}px');
     // `);
 
+    console.info('ViewportSize: ', {totalWidth, totalHeight });
     await page.setViewport({ width: Math.round(totalWidth), height: Math.round(totalHeight) });
 
     const output = await page.screenshot({
@@ -497,23 +498,7 @@ async function getEstimatedViewbox({svg, scale}) {
         height: 2 * maxSize
     });
 
-    // attempt to convert it again if it fails
-    var counter = 6;
-    async function tryToConvert() {
-        try {
-            return await convert({svg, scale: scale, width: 2 * maxSize,height: 2 * maxSize});
-        } catch(ex) {
-            await closeBrowser();
-            console.info(ex);
-            counter -= 1;
-            if (counter <= 0) {
-                return null;
-            }
-            return await tryToConvert();
-        }
-    }
-
-    const png = await tryToConvert();
+    const png = await tryToConvert({svg, scale, width: 2 * maxSize, height: 2 * maxSize});
     if (!png) {
         throw new Error('Not a valid svg');
     }
@@ -651,6 +636,20 @@ function getScale(dimensions) {
     }
 };
 
+async function tryToConvert({svg, scale, width, height}) {
+    var counter = 6;
+    for (var attempt = 0; attempt < counter; attempt ++) {
+        try {
+            return await convert({svg, scale, width, height})
+        } catch(ex) {
+            await closeBrowser();
+            browser = null;
+            debugInfo(`attempt ${attempt} failed`);
+        }
+    }
+    return null;
+}
+
 async function autoCropSvg(svg, options) {
     options = options || {};
     svg = svg.toString();
@@ -694,19 +693,6 @@ async function autoCropSvg(svg, options) {
 
     const scale = getScale(estimatedViewbox);
     // console.info('using scale: ', scale);
-    async function tryToConvert({svg, scale, width, height}) {
-        var counter = 6;
-        for (var attempt = 0; attempt < counter; attempt ++) {
-            try {
-                return await convert({svg, scale, width, height})
-            } catch(ex) {
-                await closeBrowser();
-                browser = null;
-                debugInfo(`attempt ${attempt} failed`);
-            }
-        }
-        return null;
-    }
 
     if (process.env.DEBUG_SVG) {
         console.time('Convert1');
@@ -888,7 +874,11 @@ async function autoCropSvg(svg, options) {
 
 }
 
-module.exports = async function (svg, options) {
+module.exports = async function main(svg, options) {
+    if (browser) {
+        await Promise.delay(1000);
+        return await main(svg, options);
+    }
     try {
         const result = await autoCropSvg(svg, options);
         await closeBrowser();
