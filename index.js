@@ -278,6 +278,40 @@ async function extraTransform(svg) {
     return result.data;
 }
 
+async function svgToPng({svg, scale, width, height}) {
+    return await svgToPngSharp({svg, scale, width, height});
+    // return await svgToPngPuppeteer({svg, scale, width, height});
+}
+
+async function svgToPngSharp({svg, scale, width, height}) {
+    const sharp = require('sharp');
+    let density = 72 * scale;
+    if (density < 1.1) {
+        density = 1.1;
+    }
+    if (density > 2400) {
+        density = 2400;
+    }
+    console.info({density});
+    const result = await sharp(Buffer.from(svg), { density }).png().toBuffer();
+    // console.info('done');
+    return result;
+}
+
+async function svgToPngPuppeteer({svg, scale, width, height}) {
+    var counter = 6;
+    for (var attempt = 0; attempt < counter; attempt ++) {
+        try {
+            return await convert({svg, scale, width, height})
+        } catch(ex) {
+            await closeBrowser();
+            browser = null;
+            debugInfo(`attempt ${attempt} failed`);
+        }
+    }
+    return null;
+}
+
 async function updateViewbox(content, {x, y, width, height}) {
     const newValue = `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
     const svgo = new SVGO({
@@ -497,27 +531,13 @@ async function getEstimatedViewbox({svg, scale}) {
         height: 2 * maxSize
     });
 
-    // attempt to convert it again if it fails
-    var counter = 6;
-    async function tryToConvert() {
-        try {
-            return await convert({svg, scale: scale, width: 2 * maxSize,height: 2 * maxSize});
-        } catch(ex) {
-            await closeBrowser();
-            console.info(ex);
-            counter -= 1;
-            if (counter <= 0) {
-                return null;
-            }
-            return await tryToConvert();
-        }
-    }
-
-    const png = await tryToConvert();
+    const png = await svgToPng({svg, scale , width: 2 * maxSize, height: 2 * maxSize});
     if (!png) {
         throw new Error('Not a valid svg');
     }
+    // console.info('got png');
     const image = await Jimp.read(png);
+    // console.info('got jimp');
     async function save(fileName) {
         const data = await new Promise(function(resolve) {
             image.getBuffer('image/png', function(err, data) {
@@ -529,7 +549,6 @@ async function getEstimatedViewbox({svg, scale}) {
     if (process.env.DEBUG_SVG) {
         await save('/tmp/r01.png');
     }
-
 
     const newViewbox = await getCropRegionWithWhiteBackgroundDetection({svg: svgCopy, image, allowScaling: true});
     if (newViewbox === false) { // too small size
@@ -694,24 +713,11 @@ async function autoCropSvg(svg, options) {
 
     const scale = getScale(estimatedViewbox);
     // console.info('using scale: ', scale);
-    async function tryToConvert({svg, scale, width, height}) {
-        var counter = 6;
-        for (var attempt = 0; attempt < counter; attempt ++) {
-            try {
-                return await convert({svg, scale, width, height})
-            } catch(ex) {
-                await closeBrowser();
-                browser = null;
-                debugInfo(`attempt ${attempt} failed`);
-            }
-        }
-        return null;
-    }
 
     if (process.env.DEBUG_SVG) {
         console.time('Convert1');
     }
-    const png = await tryToConvert({svg, scale, width: estimatedViewbox.width, height: estimatedViewbox.height});
+    const png = await svgToPng({svg, scale, width: estimatedViewbox.width, height: estimatedViewbox.height});
     // await (new Promise(function(){}));
     if (!png) {
         throw new Error('Not a valid svg');
@@ -802,11 +808,12 @@ async function autoCropSvg(svg, options) {
     }
     if (!options.fast) {
         const scale = getScale(newViewbox);
-        const viewBoxToCompare = { x: newViewbox.x - .1 * newViewbox.width, y: newViewbox.y - .1 * newViewbox.height, width: newViewbox.width * 1.2, height: newViewbox.height * 1.2};
-        // console.info(viewBoxToCompare);
+        console.info(scale);
+        const viewBoxToCompare = { x: newViewbox.x - 1 * newViewbox.width, y: newViewbox.y - 1 * newViewbox.height, width: newViewbox.width * 3, height: newViewbox.height * 3};
+        console.info(viewBoxToCompare);
         const s2 = await updateViewbox(newSvg, viewBoxToCompare);
-        const originalPng = await tryToConvert({svg: newSvg, scale, width: newViewbox.width, height: newViewbox.height});
-        const doublePng = await tryToConvert({svg: s2, scale, width: viewBoxToCompare.width, height: viewBoxToCompare.height });
+        const originalPng = await svgToPng({svg: newSvg, scale, width: newViewbox.width, height: newViewbox.height});
+        const doublePng = await svgToPng({svg: s2, scale, width: viewBoxToCompare.width, height: viewBoxToCompare.height });
         const originalImg = await Jimp.read(originalPng);
         const doubleImg = await Jimp.read(doublePng);
         require('fs').writeFileSync('/tmp/r3.png', originalPng);
@@ -815,7 +822,7 @@ async function autoCropSvg(svg, options) {
         const doubleViewbox = await getCropRegionWithWhiteBackgroundDetection({image: doubleImg});
         const maxDiffWidth = Math.abs(originalViewbox.width - doubleViewbox.width);
         const maxDiffHeight = Math.abs(originalViewbox.height - doubleViewbox.height);
-        if (maxDiffWidth > 2 || maxDiffHeight > 2) {
+        if (maxDiffWidth > 10 || maxDiffHeight > 10) {
             console.info({originalViewbox, doubleViewbox});
             throw new Error('This logo cannot be autocropped because of an unusual interaction with its viewbox. Please find a different logo or convert again from the original to SVG.');
         }
@@ -849,14 +856,14 @@ async function autoCropSvg(svg, options) {
 
     // try extra transformations
     const compareScale = 0.1 * getScale(newViewbox);
-    const originalPng = await tryToConvert({svg: svgWithText, scale: compareScale, width: newViewbox.width, height: newViewbox.height});
+    const originalPng = await svgToPng({svg: svgWithText, scale: compareScale, width: newViewbox.width, height: newViewbox.height});
     const originalJimp = await Jimp.read(originalPng);
 
     const transformedSvg = await extraTransform(svgWithText);
 
     async function tryToCompare() {
         for ( i = 0; i < 5; i++ ) {
-            const modifiedPng = await tryToConvert({svg: transformedSvg, scale: compareScale, width: newViewbox.width, height: newViewbox.height});
+            const modifiedPng = await svgToPng({svg: transformedSvg, scale: compareScale, width: newViewbox.width, height: newViewbox.height});
             const modifiedJimp = await Jimp.read(modifiedPng);
             if (compareImages(originalJimp, modifiedJimp)) {
                 return true;
