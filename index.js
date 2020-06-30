@@ -489,7 +489,9 @@ async function convert({svg, width, height, scale = 1 }) {
             type: 'png',
             omitBackground: true,
             clip: { x: 0, y: 0, width: totalWidth, height: totalHeight }
-        }).then( function(result) { resolved = true; resolve(result) });
+        }).then( function(result) { resolved = true; resolve(result) }).catch(function(ex) {
+            reject(new Error(`Screenshot Failure: ${ex.message}`));
+        });
         setTimeout(function() {
             if (!resolved) {
                 reject(new Error('Timeout'));
