@@ -62,3 +62,10 @@ typings/
 
 # Dropbox files
 .DS_Store
+
+# Yarn, without .pnp.js
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*
+

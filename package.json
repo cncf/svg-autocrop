@@ -29,9 +29,7 @@
     "optimize",
     "viewbox"
   ],
-  "bin": {
-    "svg-autocrop": "./fix.js"
-  },
+  "bin": "./fix.js",
   "homepage": "https://github.com/cncf/svg-autocrop#readme",
   "dependencies": {
     "bluebird": "^3.7.2",
