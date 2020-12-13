@@ -1100,10 +1100,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"devtools-protocol@npm:0.0.809251":
-  version: 0.0.809251
-  resolution: "devtools-protocol@npm:0.0.809251"
-  checksum: 06439069ebba4f317b1a1c080597f0fc698740dcd2d06acbeab05db5f27e027cf0dfa7a5cc045720af4d1a7879e3b987db6fe6bbaae4d63a735724245897764d
+"devtools-protocol@npm:0.0.818844":
+  version: 0.0.818844
+  resolution: "devtools-protocol@npm:0.0.818844"
+  checksum: 6f3e5bc2a50fc99453c75787256eb27a5707ac8e575c6783acd7cf3e13edb8974ded83f93b2e31ef2c553299b13d2970c3bf267bc32e5c0788afc933d42f39c6
   languageName: node
   linkType: hard
 
@@ -2208,12 +2208,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"puppeteer@npm:5.4.1":
-  version: 5.4.1
-  resolution: "puppeteer@npm:5.4.1"
+"puppeteer@npm:5.5.0":
+  version: 5.5.0
+  resolution: "puppeteer@npm:5.5.0"
   dependencies:
     debug: ^4.1.0
-    devtools-protocol: 0.0.809251
+    devtools-protocol: 0.0.818844
     extract-zip: ^2.0.0
     https-proxy-agent: ^4.0.0
     node-fetch: ^2.6.1
@@ -2224,7 +2224,7 @@ __metadata:
     tar-fs: ^2.0.0
     unbzip2-stream: ^1.3.3
     ws: ^7.2.3
-  checksum: 3383faedbc2f1ec1fb81aa523e2549da4f423fa45d63f8984bb0ccc16fa8f9667f2c99421fdd0487ef50e8b760ee005ee275ecc7a2f7d6270a69952f2a19d527
+  checksum: 08ba8a7da56a4d09e959740e94ecfa5cda9429dc760001040eacb33c4185d9c59a71594697d10789e396e673aa7543caf4cbb48d4dab539760a44b7a2193d174
   languageName: node
   linkType: hard
 
@@ -2532,10 +2532,10 @@ resolve@^1.3.2:
     lodash: 4.17.20
     nyc: ^15.1.0
     prettydiff: ^101.2.6
-    puppeteer: 5.4.1
+    puppeteer: 5.5.0
     svgo: ^1.3.2
     text-to-svg: ^3.1.5
-    ws: 7.3.1
+    ws: 7.4.1
     xml-beautifier: ^0.4.3
   bin:
     svg-autocrop: ./fix.js
@@ -2766,7 +2766,22 @@ resolve@^1.3.2:
   languageName: node
   linkType: hard
 
-"ws@npm:7.3.1, ws@npm:^7.2.3":
+"ws@npm:7.4.1":
+  version: 7.4.1
+  resolution: "ws@npm:7.4.1"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ^5.0.2
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 32b4f83bfeeca2b98d31c2d11c87a11c6e83f9285937e4a8267eb0ccaba479952a70c8b2ba39d0304236043c37a9bdf45cf2e5a1c28f19a77838e4e0b7f37593
+  languageName: node
+  linkType: hard
+
+"ws@npm:^7.2.3":
   version: 7.3.1
   resolution: "ws@npm:7.3.1"
   peerDependencies:
