@@ -37,7 +37,7 @@
     "glob": "^7.1.6",
     "https-proxy-agent": "^5.0.0",
     "jimp": "0.16.1",
-    "lodash": "4.17.20",
+    "lodash": "4.17.19",
     "prettydiff": "^101.2.6",
     "puppeteer": "^7.1.0",
     "svgo": "^1.3.2",
