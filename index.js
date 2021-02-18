@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const fileUrl = require('file-url');
 const _  = require('lodash');
 const Jimp = require('jimp');
-const SVGO = require('svgo');
+const optimize = require('svgo').optimize;
 const addText = require('./addText');
 
 const maxSize = 16000; //original SVG files should be up to this size
@@ -24,25 +24,19 @@ const makeHelpers = function(root) {
     }
 }
 
-async function svgo({content, title}) {
+async function optimizeSvg({content, title}) {
     let rootStyle = '';
     let result;
-    result = await (new SVGO({
-        full: true,
-        plugins: [{
-            removeDoctype: true,
-        },{
-            removeXMLProcInst: true,
-        },{
-            removeComments: true,
-        },{
-            removeMetadata: true,
-        },{
-            removeTitle: true,
-        },{
-            removeDesc: true,
-        },{
-            removeStyleFromRoot: {
+    result = await optimize(content, {
+        plugins: [
+            'removeDoctype',
+            'removeXMLProcInst',
+            'removeComments',
+            'removeMetadata',
+            'removeTitle',
+            'removeDesc',
+            {
+                name: 'removeStyleFromRoot',
                 type: 'full',
                 fn: function(data) {
                     const root = data.content[0];
@@ -55,97 +49,63 @@ async function svgo({content, title}) {
                     }
                     return data;
                 }
-            }
-        }
-        
-        ]
-    })).optimize(content);
+            }]
+    });
     if (process.env.DEBUG_SVG) {
         require('fs').writeFileSync('/tmp/s1.svg', result.data);
     }
 
     let rootUpdated = false;
-    result = await (new SVGO({
-        plugins: [{
-            cleanupAttrs: true,
-        }, {
-            inlineStyles: true
-        }, {
-            removeDoctype: true,
-        },{
-            removeXMLProcInst: true,
-        },{
-            removeComments: true,
-        },{
-            removeMetadata: true,
-        },{
-            removeTitle: true,
-        },{
-            removeDesc: true,
-        },{
-            removeUselessDefs: true,
-        },{
-            removeEditorsNSData: true,
-        },{
-            removeEmptyAttrs: true,
-        },{
-            removeHiddenElems: true,
-        },{
-            removeEmptyText: true,
-        },{
-            removeEmptyContainers: true,
-        },{
-            removeDimensions: true,
-        },{
-            cleanupEnableBackground: true,
-        },{
-            minifyStyles: true,
-        },{
-            convertStyleToAttrs: true,
-        },{
-            convertColors: true,
-        },{
-            convertPathData: false,
-        },{
-            convertTransform: true,
-        },{
-            removeUnknownsAndDefaults: true,
-        },{
-            removeNonInheritableGroupAttrs: true,
-        },{
-            removeUselessStrokeAndFill: true,
-        },{
-            removeUnusedNS: true,
-        },{
-            cleanupIDs: true,
-        },{
-            cleanupNumericValues: true,
-        },{
-            cleanupListOfValues: true,
-        },{
-            moveElemsAttrsToGroup: true,
-        },{
-            moveGroupAttrsToElems: true,
-        },{
-            collapseGroups: false,
-        },{
-            removeRasterImages: false,
-        },{
-            mergePaths: {noSpaceAfterFlags: false },
-        },{
-            convertShapeToPath: true,
-        },{
-            sortAttrs: true,
-        },{
-            removeDimensions: true,
-        }, {
-            removeScriptElements: true
-        }, {
-            removeAttrs: {
-                attrs: ['aria.*', 'font.*', '-inkspace.*', 'line.*', 'font', 'letter.*', 'word.*', 'direction', 'white.*']
-            }
-        }, {
-            removeTextStyles: {
+    result = await optimize(result.data, {
+        plugins: [
+            'cleanupAttrs',
+            'inlineStyles',
+            'removeDoctype',
+            'removeXMLProcInst',
+            'removeComments',
+            'removeMetadata',
+            'removeTitle',
+            'removeDesc',
+            'removeUselessDefs',
+            'removeEditorsNSData',
+            'removeEmptyAttrs',
+            'removeHiddenElems',
+            'removeEmptyText',
+            'removeEmptyContainers',
+            'removeDimensions',
+            'cleanupEnableBackground',
+            'minifyStyles',
+            'convertStyleToAttrs',
+            'convertColors',
+            'convertPathData',
+            'convertTransform',
+            'removeUnknownsAndDefaults',
+            'removeNonInheritableGroupAttrs',
+            'removeUselessStrokeAndFill',
+            'removeUnusedNS',
+            'cleanupIDs',
+            'cleanupNumericValues',
+            'cleanupListOfValues',
+            'moveElemsAttrsToGroup',
+            'moveGroupAttrsToElems',
+            // 'collapseGroups',
+            // 'removeRasterImages',
+            {
+                name: 'mergePaths',
+                params: {noSpaceAfterFlags: false }
+            },
+            'convertShapeToPath',
+            'sortAttrs',
+            'removeDimensions',
+            'removeScriptElement',
+            {
+                name: 'removeAttrs',
+                params: {
+                    attrs: ['aria.*', 'font.*', '-inkspace.*', 'line.*', 'font', 'letter.*', 'word.*', 'direction', 'white.*']
+                }
+            },
+            {
+                name: 'removeTextStyles',
                 type: 'perItem',
                 fn: function(item) {
                     if (item.hasAttr('style')) {
@@ -184,122 +144,115 @@ async function svgo({content, title}) {
                         }
                     }
                 }
-            }
         }, {
-            cleanupSvgDeclaration: {
-                type: 'perItem',
-                fn: function(item) {
-                    if (item.elem === 'svg') {
-                        if (!rootUpdated) {
-                            rootUpdated = true;
-                            const xmlns = item.attrs.xmlns;
-                            const xmlnsxlink = item.attrs['xmlns:xlink'];
-                            item.attrs = { xmlns: xmlns, role: {name: 'role', value: 'img', local: 'role', prefix: ''}};
-                            if (xmlnsxlink) {
-                                item.attrs['xmlns:xlink'] = xmlnsxlink;
-                            }
-                        } else {
-                            throw new Error('We do not support SVG inside of SVG because that format is unlikely to reproduce reliably on different devices.');
+            name: 'cleanupSvgDeclaration',
+            type: 'perItem',
+            fn: function(item) {
+                if (item.elem === 'svg') {
+                    if (!rootUpdated) {
+                        rootUpdated = true;
+                        const xmlns = item.attrs.xmlns;
+                        const xmlnsxlink = item.attrs['xmlns:xlink'];
+                        item.attrs = { xmlns: xmlns, role: {name: 'role', value: 'img', local: 'role', prefix: ''}};
+                        if (xmlnsxlink) {
+                            item.attrs['xmlns:xlink'] = xmlnsxlink;
                         }
+                    } else {
+                        throw new Error('We do not support SVG inside of SVG because that format is unlikely to reproduce reliably on different devices.');
                     }
                 }
             }
         }]
-    })).optimize(result.data);
+    });
+
     if (process.env.DEBUG_SVG) {
         require('fs').writeFileSync('/tmp/s2.svg', result.data);
     }
 
     if (rootStyle) {
-        result = await (new SVGO({
-            full: true,
+        result = await optimize(result.data, {
             plugins: [{
-                addRootStyle: {
-                    type: 'full',
-                    fn: function(data) {
-                        const root = data.content[0];
-                        const addHelpers = makeHelpers(root);
-                        const styleElem = addHelpers({
-                            elem: 'style',
-                            prefix: '',
-                            local: 'style',
-                            content: [addHelpers({text:rootStyle})]
-                        })
-                        root.content = [styleElem].concat(root.content);
-                        return data;
-                    }
+                name: 'addRootStyle',
+                type: 'full',
+                fn: function(data) {
+                    const root = data.content[0];
+                    const addHelpers = makeHelpers(root);
+                    const styleElem = addHelpers({
+                        elem: 'style',
+                        prefix: '',
+                        local: 'style',
+                        content: [addHelpers({text:rootStyle})]
+                    })
+                    root.content = [styleElem].concat(root.content);
+                    return data;
                 }
             }]
-        })).optimize(result.data);
+        });
     }
     if (process.env.DEBUG_SVG) {
         require('fs').writeFileSync('/tmp/s3.svg', result.data);
     }
 
     if (title) {
-        result = await (new SVGO({
-            full: true,
+        result = await optimize(result.data, {
             plugins: [{
-                insertTitle: {
-                    type: 'full',
-                    fn: function(data) {
-                        const root = data.content[0];
-                        const addHelpers = makeHelpers(root);
-                        root.content = [addHelpers({
-                            elem: 'title',
-                            prefix: '',
-                            local: 'title',
-                            content: [addHelpers({text: title})]
-                        })].concat(root.content);
-                        return data;
-                    }
+                name: 'insertTitle',
+                type: 'full',
+                fn: function(data) {
+                    const root = data.content[0];
+                    const addHelpers = makeHelpers(root);
+                    root.content = [addHelpers({
+                        elem: 'title',
+                        prefix: '',
+                        local: 'title',
+                        content: [addHelpers({text: title})]
+                    })].concat(root.content);
+                    return data;
                 }
             }]
-        })).optimize(result.data);
+        });
     }
+
     if (process.env.DEBUG_SVG) {
         require('fs').writeFileSync('/tmp/s4.svg', result.data);
     }
+
     return result.data;
 }
 
 async function extraTransform(svg) {
-    result = await (new SVGO({
-        full: true,
-        plugins: [{
-            collapseGroups: true,
-        }, {
-            convertPathData: {
-                noSpaceAfterFlags: false,
-                floatPrecision: 5,
-                transformPrecision: 7
-            }
-        }]
-    })).optimize(svg);
+    result = await optimize(svg, {
+        plugins: ['collapseGroups',
+            {
+                name: 'convertPathData',
+                params: {
+                    noSpaceAfterFlags: false,
+                    floatPrecision: 5,
+                    transformPrecision: 7
+                }
+            }]
+    });
     return result.data;
 }
 
 async function updateViewbox(content, {x, y, width, height}) {
     const newValue = `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
-    const svgo = new SVGO({
-        full: true,
+    const result = await optimize(content, {
         plugins: [{
-            updateViewbox: {
-                type: 'full',
-                fn: function(data) {
-                    const root = data.content[0];
-                    root.attrs.viewBox = {
-                        name: 'viewBox',
-                        local: 'viewBox',
-                        prefix: '',
-                        value: newValue
-                    };
-                    return data;
-                }
+            name: 'updateViewbox',
+            type: 'full',
+            fn: function(data) {
+                const root = data.content[0];
+                root.attrs.viewBox = {
+                    name: 'viewBox',
+                    local: 'viewBox',
+                    prefix: '',
+                    value: newValue
+                };
+                return data;
             }
         }]
     });
-    const result = await svgo.optimize(content);
     return result.data;
 }
 
@@ -673,7 +626,7 @@ async function autoCropSvg(svg, options) {
     // running it up to 5 times helps to reduce amount of nested groups
     let previousSvg = svg;
     for (var i = 0; i < 5; i ++) {
-        svg = await svgo({content: svg, title: options.title});
+        svg = await optimizeSvg({content: svg, title: options.title});
         if (svg === previousSvg) {
             break;
         } else {

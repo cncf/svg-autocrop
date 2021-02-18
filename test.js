@@ -46,7 +46,7 @@ async function main() {
                         y: +viewBox.split(' ')[1],
                         width: +viewBox.split(' ')[2],
                         height: +viewBox.split(' ')[3],
-                        remaining: otherContent
+                        remaining: otherContent.toLowerCase()
                     }
 		}
                 const realParts = separateContentAndViewbox(convertedSvg);
