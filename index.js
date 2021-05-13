@@ -1,6 +1,6 @@
+const path = require('path');
 const Promise = require('bluebird');
 const puppeteer = require('puppeteer');
-const fileUrl = require('file-url');
 const _  = require('lodash');
 const Jimp = require('jimp');
 const SVGO = require('svgo');
@@ -461,9 +461,8 @@ async function convert({svg, width, height, scale = 1 }) {
     require('fs').writeFileSync(fileName, html);
     browser = browser || await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']});
     const page = await browser.newPage();
-    const url = fileUrl(fileName);
-    // console.info(url);
-    await page.goto(fileUrl(fileName));
+    const url = `file://${fileName}`;
+    await page.goto(url);
     // await new Promise(function(){});
 
     const totalWidth = width * scale;
