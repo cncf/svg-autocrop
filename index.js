@@ -117,7 +117,7 @@ async function svgo({content, title}) {
         },{
             removeUnusedNS: true,
         },{
-            cleanupIDs: true,
+            cleanupIDs: false,
         },{
             cleanupNumericValues: true,
         },{
@@ -267,6 +267,8 @@ async function extraTransform(svg) {
     result = await (new SVGO({
         full: true,
         plugins: [{
+            cleanupIDs: true
+        }, {
             collapseGroups: true,
         }, {
             convertPathData: {
@@ -890,7 +892,6 @@ async function autoCropSvg(svg, options) {
             skipRiskyTransformations: true
         }
     }
-
 
 }
 
