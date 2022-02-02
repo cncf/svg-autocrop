@@ -823,7 +823,7 @@ async function autoCropSvg(svg, options) {
         debugInfo('doubleViewbox calculated'); 
         const maxDiffWidth = Math.abs(originalViewbox.width - doubleViewbox.width);
         const maxDiffHeight = Math.abs(originalViewbox.height - doubleViewbox.height);
-        if (maxDiffWidth > 2 || maxDiffHeight > 2) {
+        if (maxDiffWidth > 3 || maxDiffHeight > 3) {
             console.info({originalViewbox, doubleViewbox});
             throw new Error('This logo cannot be autocropped because of an unusual interaction with its viewbox. Please find a different logo or convert again from the original to SVG.');
         }
