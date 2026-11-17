@@ -21,8 +21,9 @@ These fixtures are the characterization tests for `index.js`. Protect them:
   overwrites expected output with whatever the code produces now. Use it only
   for fixtures whose output you intend to change, scope it with `MATCH`, review
   the `fixtures/` diff (including exact error-text baselines), and list every
-  changed fixture in the PR. `compare.html` shows input beside current output;
-  use it as an additional visual check, not as a before-and-after comparison.
+  changed fixture in the PR. `compare.html` shows each input beside its saved
+  expected output, not freshly generated output. Do not use it to verify the
+  rendered result of a code change.
 - `npm test` rewrites `compare.html`. Do not commit that change unless you added
   or removed fixtures.
 
