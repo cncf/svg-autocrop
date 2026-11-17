@@ -20,8 +20,9 @@ These fixtures are the characterization tests for `index.js`. Protect them:
 - **Never re-capture fixtures to make a failing test pass.** `CAPTURE=1`
   overwrites expected output with whatever the code produces now. Use it only
   for fixtures whose output you intend to change, scope it with `MATCH`, review
-  the before and after in `compare.html`, and list every changed fixture in the
-  PR.
+  the `fixtures/` diff (including exact error-text baselines), and list every
+  changed fixture in the PR. `compare.html` shows input beside current output;
+  use it as an additional visual check, not as a before-and-after comparison.
 - `npm test` rewrites `compare.html`. Do not commit that change unless you added
   or removed fixtures.
 
@@ -51,6 +52,8 @@ rendered output also needs a fixture.
 
 Write unit tests with Node's built-in runner (`node:test` and `node:assert`).
 Don't add a test framework dependency without discussing it first.
+Before relying on unit tests, ensure `npm test` runs them alongside the fixture
+suite and that the Node versions used locally and in CI support the runner.
 
 `index.js` exports only its entry point. To unit test a helper inside it, first
 move the helper into its own module (Extract Function, Move Function) with the
