@@ -35,6 +35,56 @@ For more information on recommended rules for collecting logos, please see the [
 
 svg-autocrop has been developed by [Andrey Kozlov](https://github.com/AndreyKozlov1984) and [Dan Kohn](https://www.dankohn.com) of [CNCF](https://www.cncf.io).
 
+## Command line usage
+
+Installing the package globally gives you an `svg-autocrop` command:
+
+```sh
+npm install -g svg-autocrop
+```
+
+The install downloads a copy of Chromium (used to render each SVG), so it can take a
+minute and needs network access. On Linux, if you installed Node with the system package
+manager you may need `sudo npm install -g svg-autocrop`.
+
+The command has two modes and takes no other arguments.
+
+### Crop one or more files into an `output` folder
+
+With no arguments, `svg-autocrop` reads every `.svg` file in an `input` folder in the
+current directory and writes the cropped copies, with the same file names, to an
+`output` folder next to it. Both folders must already exist. The input files are not
+modified.
+
+To crop a single file:
+
+```sh
+mkdir -p svg/input svg/output
+cp path/to/logo.svg svg/input/
+cd svg
+svg-autocrop
+```
+
+The cropped file is written to `output/logo.svg`. SVG-processing failures (for
+example an SVG containing a raster image or `<text>` element) are reported in the
+terminal and that file is skipped.
+
+**Known issue (both modes):** If the current directory has no `compare.html`, the
+command prints an `ENOENT` error for `./compare.html` after processing the SVGs.
+This only prevents creation of the comparison report; successfully written SVGs
+are unaffected.
+
+### Crop every SVG under a directory in place
+
+```sh
+svg-autocrop --recursive path/to/directory
+```
+
+This finds every `.svg` file under the directory (non-SVG files are ignored) and
+overwrites each one with its cropped version, so run it on a copy or on files tracked
+in version control. The argument must be a directory, not a file; if omitted it defaults
+to the current directory.
+
 ## Manually Optimizing SVGs
 
 These directions will let you manually optimize SVGs on a Mac:
@@ -50,7 +100,7 @@ These directions will let you manually optimize SVGs on a Mac:
 1. In Finder, go to `Documents`:`svg`:`input` and drag in one or more SVGs that you want to optimize.
 1. If terminal is not already running, type Cmd-space, enter `terminal` and hit return to open
 1. Type `cd ~/Documents/svg` to go to the proper directory
-1. Type `npm run fix`
+1. Type `svg-autocrop`
 1. If no errors print out, you should see the optimized SVGs in an `output` folder
 1. Double-click on each SVG so that it opens in Chrome. Manually verify that the SVG does not look any different (except cropped)
 
@@ -61,9 +111,10 @@ These directions will let you manually optimize SVGs on a Mac:
 
 You can recursively autocrop multiple SVGs (while non-SVG files are ignored) with the command:
 
-`node fix --recursive ../artwork/`
+`svg-autocrop --recursive ../artwork/`
 
-(Do this from the svg-autocrop directory and set the directory to where you have images to autocrop.)
+or, from a clone of this repository, `node fix --recursive ../artwork/`. Set the directory
+to where you have images to autocrop. The files are overwritten in place.
 
 ## Debugging the project
 * npm test will run a full check on all the images in the fixture folder
@@ -72,7 +123,7 @@ folder and then save results
 * MATCH=kubernetes npm test will run a check only on files matching kubernetes in the
 * CAPTURE=1 MATCH=kubernetes npm test will run an svg-autocrop only on files matching kubernetes in the
 fixture folder
-* npm fix will convert svg images in the `images` folder
+* npm run fix will convert svg images in the `input` folder and save them to the `output` folder
 
 
 ## Vulnerability reporting
