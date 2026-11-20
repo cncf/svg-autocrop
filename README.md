@@ -65,9 +65,14 @@ cd svg
 svg-autocrop
 ```
 
-The cropped file is written to `output/logo.svg`. Any failures (for example an SVG
-containing a raster image or `<text>` element) are reported in the terminal and that
-file is skipped.
+The cropped file is written to `output/logo.svg`. SVG-processing failures (for
+example an SVG containing a raster image or `<text>` element) are reported in the
+terminal and that file is skipped.
+
+**Known issue (both modes):** If the current directory has no `compare.html`, the
+command prints an `ENOENT` error for `./compare.html` after processing the SVGs.
+This only prevents creation of the comparison report; successfully written SVGs
+are unaffected.
 
 ### Crop every SVG under a directory in place
 
