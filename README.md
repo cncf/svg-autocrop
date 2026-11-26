@@ -51,10 +51,10 @@ The command has two modes and takes no other arguments.
 
 ### Crop one or more files into an `output` folder
 
-With no arguments, `svg-autocrop` reads every `.svg` file in an `input` folder in the
+With no arguments, `svg-autocrop` reads `.svg` files in an `input` folder in the
 current directory and writes the cropped copies, with the same file names, to an
-`output` folder next to it. Both folders must already exist. The input files are not
-modified.
+`output` folder next to it. Both folders must already exist. Files with `.processed.`
+in their name are skipped. The input files are not modified.
 
 To crop a single file:
 
