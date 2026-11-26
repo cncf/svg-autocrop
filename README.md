@@ -66,6 +66,10 @@ You can recursively autocrop multiple SVGs (while non-SVG files are ignored) wit
 (Do this from the svg-autocrop directory and set the directory to where you have images to autocrop.)
 
 ## Debugging the project
+
+From the repository root, run `npm ci` to install the versions in `package-lock.json`.
+Commit only this lockfile. Use `npm run pack:release` to create a tarball or `npm run publish:release` to publish. These commands stage the package in a temporary directory and generate `npm-shrinkwrap.json` there, leaving the tracked lockfile untouched. An unpacked npm package can be repacked using its existing shrinkwrap.
+
 * npm test will run a full check on all the images in the fixture folder
 * CAPTURE=1 npm test will run an svg-autocrop on all images in the fixture
 folder and then save results
