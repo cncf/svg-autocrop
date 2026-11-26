@@ -23,11 +23,12 @@ function packDestination(args) {
   return process.cwd();
 }
 
-function runNpm(args, cwd) {
+function runNpm(args, cwd, { inheritStdio = false } = {}) {
   const result = spawnSync("npm", args, {
     cwd,
     encoding: "utf8",
     maxBuffer: 10 * 1024 * 1024,
+    stdio: inheritStdio ? "inherit" : "pipe",
   });
 
   if (result.error) {
@@ -96,8 +97,11 @@ try {
     const publishOutput = runNpm(
       ["publish", tarball, ...userArgs, "--ignore-scripts", "--loglevel=error"],
       root,
+      { inheritStdio: true },
     );
-    process.stdout.write(publishOutput);
+    if (publishOutput) {
+      process.stdout.write(publishOutput);
+    }
     console.log(
       `${userArgs.includes("--dry-run") ? "Dry run completed for" : "Published"} ${packMetadata.id}.`,
     );
