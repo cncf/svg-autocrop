@@ -102,7 +102,7 @@ try {
     if (publishOutput) {
       process.stdout.write(publishOutput);
     }
-    console.log(
+    console.error(
       `${userArgs.includes("--dry-run") ? "Dry run completed for" : "Published"} ${packMetadata.id}.`,
     );
   }
