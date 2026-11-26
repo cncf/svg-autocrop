@@ -4,10 +4,12 @@
   "description": "Auto crop svg files and remove extraneous tags and attributes",
   "main": "index.js",
   "scripts": {
-    "test": "nyc --include=index.js --reporter=text --reporter=html node test.js && node test-publish-hooks.js",
+    "test": "nyc --include=index.js --reporter=text --reporter=html node test.js && node test-publish-hooks.js && node test-staged-packaging.js",
     "fix": "node fix.js",
     "capture": "CAPTURE=1 node test.js",
     "one-image": "CAPTURE=1 MATCH=kubernetes node test.js",
+    "pack:release": "node scripts/package-release.js pack",
+    "publish:release": "node scripts/package-release.js publish",
     "prepack": "node scripts/publish-shrinkwrap.js",
     "postpack": "node scripts/publish-shrinkwrap.js --cleanup"
   },
